@@ -2,8 +2,8 @@ import GeneticAlgorithm
 import GAUtility
 import System.Random (randomR, mkStdGen, Random (randomRs))
 
-type Node = (String,Int,Int)
-type Route = [Node]
+type City = (String,Int,Int)
+type Route = [City]
 type Distance = Double
 
 mkRandCities :: Int -> Seed -> Route
@@ -15,13 +15,13 @@ mkRandCities size seed = zip3 (take size (map singleton ['A'..'Z'])) (take size 
 mkRandRoute :: Route -> MkRand Route
 mkRandRoute cities seed = head cities : shuffle seed (tail cities)
 
-distance :: Node -> Node -> Distance
+distance :: City -> City -> Distance
 distance (n1,x1,y1) (n2,x2,y2) = sqrt $ fromIntegral((x2 - x1)^2 + (y2 - y1)^2)
 
 fitness :: Fitness Route
 fitness route = round $ sum $ zipWith distance route (tail route ++ [head route])
 
-legs :: Route -> [(Node, Node)]
+legs :: Route -> [(City, City)]
 legs route = zip route (tail route ++ [head route])
   
 stop :: Stop Route
