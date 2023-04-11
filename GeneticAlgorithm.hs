@@ -27,8 +27,9 @@ type Merge c = Pop (Eval c) -> Pop (Eval c) -> Pop (Eval c)
 type Stop c = Pop (Eval c) -> Bool
 type MkRand c = Seed -> c
 
--- onePointCrossover :: Crossover ([a],[a])
--- onePointCrossover i (xs,ys) = take i xs ++ drop i ys
+onePointCrossover :: Crossover [a]
+onePointCrossover size seed [xs,ys] = [take i xs ++ drop i ys]
+  where i = mod seed size
 
 permCrossover :: Eq a => Crossover [a]
 permCrossover size seed [xs,ys] = [cs ++ (ys \\ cs)]
@@ -36,6 +37,12 @@ permCrossover size seed [xs,ys] = [cs ++ (ys \\ cs)]
     cs = take i xs
     i = mod seed size
 
+permCrossover2 :: Eq a => Crossover [a]
+permCrossover2 size seed [xs,ys] = [csA ++ (ys \\ csA),csB ++ (xs \\ csB)]
+  where
+    csA = take i xs
+    csB = take i ys
+    i = mod seed size
 -- onePointCrossover' :: Index -> Pop c -> Pop c
 -- onePointCrossover' i [c1,c2] = [take i c1 ++ drop i c2]
 

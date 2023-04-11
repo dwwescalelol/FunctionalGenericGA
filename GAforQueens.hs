@@ -47,7 +47,8 @@ main = do
   let xProb = 0.4
   let mProb = 0.6
   let (solution,hallOfFame) = gaForQueens n maxGen popSize (xProb,mProb) seed
-  mapM_ print (take 20 solution)
+  mapM_ print (take 20 $ sortPop hallOfFame)
+  print "-----------------------------------------------------"
   print $ length solution
   print $ head solution
 

@@ -2,20 +2,10 @@ import GeneticAlgorithm
 import GAUtility
 import System.Random (randomR, mkStdGen, Random (randomRs))
 
-
-
 type Weight = Int
 type Bin = [Weight]
 type Bins = [Bin]
 type NumBins = Int
-
--- testing
-weights :: [Weight]
-weights = [25,12,33,10,47,9,21,43,30,20,10,10]
-binsa :: Bins
-binsa = mkRandBins 4 weights 324
-binsb :: Bins
-binsb = mkRandBins 4 weights 3789123
 
 mkRandWeights :: Int -> (Int,Int) -> Seed -> [Weight]
 mkRandWeights size (lowerB,upperB) seed = take size (randomRs (lowerB,upperB) (mkStdGen seed))
@@ -66,15 +56,23 @@ binCrossover numWeights seed [xs,ys] = [childBins]
     [childWeights] = permCrossover numWeights seed [concat xs, concat ys]
     childBins = splitList childWeights binSizes
 
+binCrossover2 :: Crossover Bins
+binCrossover2 numWeights seed [xs,ys] = [childA,childB]
+  where
+    (binSizesA,binSizesB) = (map length xs, map length ys)
+    [childWeightsA,childWeightsB] = permCrossover2 numWeights seed [concat xs, concat ys]
+    childA = splitList childWeightsA binSizesA
+    childB = splitList childWeightsB binSizesB
+
 naiveBinMutate :: Mutation Bins
 naiveBinMutate numBins seed [bins] = [splitList (head updatedWeights) windows]
   where
     windows = map length bins
     updatedWeights = mutationBySwap numBins seed [concat bins]
-    
+
 gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> (Pop (Eval Bins), Pop (Eval Bins))
 gaForBP weights numBins maxGenerations popSize (xProb,mProb)
-  = geneticAlgorithm maxGenerations popSize numBins (mkRandBins numBins weights) (fitness average) eliteSelection
+  = geneticAlgorithm maxGenerations popSize numBins (mkRandBins numBins weights) (fitness average) rselection
   (binCrossover, 2, 1, xProb) (binMutate, 1, 1, mProb) orderedMerge (stop minWaste)
     where
       totalSum = sum weights
@@ -83,15 +81,15 @@ gaForBP weights numBins maxGenerations popSize (xProb,mProb)
 
 main :: IO ()
 main = do
-  let weights = mkRandWeights 30 (2,50) 4234
-  let numBins = 7
-  let seed = 4892
-  let maxGen = 20
-  let popSize = 6000
-  let xProb = 0.4
+  let weights = mkRandWeights 30 (2,50) 486237
+  let numBins = 10
+  let seed = 46234
+  let maxGen = 30
+  let popSize = 1000
+  let xProb = 0.3
   let mProb = 0.6
   let (solution,hallOfFame) = gaForBP weights numBins maxGen popSize (xProb,mProb) seed
-  mapM_ print (take 20 hallOfFame)
+  mapM_ print (take 20 $ sortPop hallOfFame)
   print "-----------------------------------------------------"
   print $ length solution
   print $ head solution
