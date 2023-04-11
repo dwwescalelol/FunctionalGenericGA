@@ -3,7 +3,6 @@ import System.Random (randomR, mkStdGen, Random (randomRs))
 import Data.List
 import GAUtility
 
--- types for readability
 type Seed = Int
 type Size = Int
 type Index = Int
@@ -11,14 +10,11 @@ type Prob = Double
 type MaxGenerations = Int
 type PopSize = Int
 type ChromSize = Int
-
 type FitnessValue = Int
 
 type Eval c = (FitnessValue, c)
 type Pop c = [c]
 
--- crossover and mutation are chromsize
--- Selection returns an infinate list, must use take when called
 type Selection c = Seed -> Pop (Eval c) -> Pop (Eval c)
 type Crossover c = ChromSize -> Seed -> Pop c -> Pop c
 type Mutation c = ChromSize -> Seed -> Pop c -> Pop c
@@ -26,6 +22,34 @@ type Fitness c = c -> FitnessValue
 type Merge c = Pop (Eval c) -> Pop (Eval c) -> Pop (Eval c)
 type Stop c = Pop (Eval c) -> Bool
 type MkRand c = Seed -> c
+
+--
+-- Selection
+--
+
+-- assume population is sorted
+-- Selection returns an infinate list, must use take when called
+rselection :: Selection c
+rselection seed evalPop = map (evalPop !!) indices
+  where
+    highestFitness = 1 + fst (last evalPop)
+    accFitness = scanl1 (+) $ map ((highestFitness -) . fst) evalPop
+    highestAccFitness = last accFitness
+    randomNumbers = randomRs (0, highestAccFitness - 1) (mkStdGen seed)
+    indices = map (indexOf accFitness) randomNumbers
+
+tournementSelection :: Ord c => Selection c
+tournementSelection seed evalPop = map (fitterChrom evalPop) (segment 2 indicies)
+  where
+    indicies = take (length evalPop * 2) $ randomRs (0, length evalPop - 1) (mkStdGen seed)
+    fitterChrom evaledPop [i,j] = min (evaledPop !! i) (evaledPop !! j)
+
+eliteSelection :: Selection c
+eliteSelection seed evalPop = evalPop
+
+--
+-- Crossover
+--
 
 onePointCrossover :: Crossover [a]
 onePointCrossover size seed [xs,ys] = [take i xs ++ drop i ys]
@@ -43,11 +67,10 @@ permCrossover2 size seed [xs,ys] = [csA ++ (ys \\ csA),csB ++ (xs \\ csB)]
     csA = take i xs
     csB = take i ys
     i = mod seed size
--- onePointCrossover' :: Index -> Pop c -> Pop c
--- onePointCrossover' i [c1,c2] = [take i c1 ++ drop i c2]
 
--- onePointCrossover2' :: Index -> Pop c -> Pop c
--- onePointCrossover2' i [c1,c2] = [take i c1 ++ drop i c2, take i c2 ++ drop i c1]
+--
+-- Mutation
+--
 
 mutationBySwap :: Mutation [a]
 mutationBySwap size seed [xs]
@@ -73,36 +96,20 @@ mutationBySwap2' i [c1,c2] = [m1,m2]
     m1 = take i c1 ++ [c2 !! i] ++ drop (i+1) c1
     m2 = take i c2 ++ [c1 !! i] ++ drop (i+1) c2
 
--- assume ps sorted
--- Roulette selection using windowing
--- Selection returns an infinate list, must use take when called
-rselection :: Selection c
-rselection seed evalPop = map (evalPop !!) indices
-  where
-    -- lower is better
-    highestFitness = 1 + fst (last evalPop)
-    accFitness = scanl1 (+) $ map ((highestFitness -) . fst) evalPop
-    highestAccFitness = last accFitness
-    randomNumbers = randomRs (0, highestAccFitness - 1) (mkStdGen seed)
-    indices = map (indexOf accFitness) randomNumbers
+--
+-- Merge
+--
 
-tournementSelection :: Ord c => Selection c
-tournementSelection seed evalPop = map (fitterChrom evalPop) (segment 2 indicies)
-  where
-    indicies = take (length evalPop * 2) $ randomRs (0, length evalPop - 1) (mkStdGen seed)
-    fitterChrom evaledPop [i,j] = min (evaledPop !! i) (evaledPop !! j)
-
-eliteSelection :: Selection c
-eliteSelection seed evalPop = evalPop
+concatMerge :: Merge c
+concatMerge = (++)
 
 --
--- creating populations
+-- Population
 --
--- Initialize Population
+
 initPop :: Size -> Size -> MkRand c -> Seed -> Pop c
 initPop popSize chromSize mkRandChrom seed = map mkRandChrom seeds
   where
-    -- Generate a list of random seeds for each individual in the population
     rnds = randomRs (0 , maxBound :: Seed) (mkStdGen seed)
     seeds = take popSize rnds
 
@@ -112,10 +119,7 @@ evalPop fitFunc pop = sortPop $ zip (map fitFunc pop) pop
 sortPop :: Pop (Eval c) -> Pop (Eval c)
 sortPop = sortBy (\(fitnessA, _) (fitnessB, _) -> compare fitnessA fitnessB)
 
-concatMerge :: Merge c
-concatMerge = (++)
 
--- Generate Next Population
 evolve :: PopSize -> ChromSize -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Seed -> Pop (Eval c) -> Pop (Eval c)
 evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, crossoverProb) 
