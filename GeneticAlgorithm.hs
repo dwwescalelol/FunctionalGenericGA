@@ -103,6 +103,13 @@ mutationBySwap2' i [c1,c2] = [m1,m2]
 concatMerge :: Merge c
 concatMerge = (++)
 
+orderedMerge :: Ord a => [a] -> [a] -> [a]
+orderedMerge xs [] = xs
+orderedMerge [] ys = ys
+orderedMerge (x:xs) (y:ys)
+  | x <= y = x : orderedMerge xs (y:ys)
+  | otherwise = y : orderedMerge (x:xs) ys
+  
 --
 -- Population
 --
@@ -113,14 +120,30 @@ initPop popSize chromSize mkRandChrom seed = map mkRandChrom seeds
     rnds = randomRs (0 , maxBound :: Seed) (mkStdGen seed)
     seeds = take popSize rnds
 
-evalPop :: Fitness c -> Pop c -> Pop (Eval c)
-evalPop fitFunc pop = sortPop $ zip (map fitFunc pop) pop
+evalPop :: Ord c => Fitness c -> Pop c -> Pop (Eval c)
+evalPop fitFunc pop = distinct $ mySort $ zip (map fitFunc pop) pop
 
 sortPop :: Pop (Eval c) -> Pop (Eval c)
 sortPop = sortBy (\(fitnessA, _) (fitnessB, _) -> compare fitnessA fitnessB)
 
+mySort :: Ord c => Pop (Eval c) -> Pop (Eval c)
+mySort = sortBy myCompare
+  where
+    myCompare (f1,c1) (f2,c2)
+      | f1 < f2 = LT
+      | f1 > f2 = GT
+      | f1 == f2 && c1 < c2 = LT
+      | f1 == f2 && c1 > c2 = GT
+      | otherwise = EQ
 
-evolve :: PopSize -> ChromSize -> Fitness c -> Selection c ->
+distinct :: Eq c => Pop (Eval c) -> Pop (Eval c)
+distinct [] = []
+distinct [x] = [x]
+distinct (x:y:xs)
+  | x == y = distinct (x:xs)
+  | otherwise = x : distinct (y:xs)
+
+evolve :: Ord c => PopSize -> ChromSize -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Seed -> Pop (Eval c) -> Pop (Eval c)
 evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, crossoverProb) 
   (mutation, mNumParents, mNumChildren, mutationProb) merge seed evaledPop = 
@@ -142,7 +165,7 @@ evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren
 
     seeds = randomRs (0,maxBound) (mkStdGen seed)
 
-geneticAlgorithm :: MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
+geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> (Pop (Eval c), Pop (Eval c))
 geneticAlgorithm maxGenerations popSize chromSize randChrom fitness selection
   (crossover, xNumParents, xNumChildren, crossoverProb) (mutation, mNumParents, mNumChildren, mutationProb) merge stop seed =

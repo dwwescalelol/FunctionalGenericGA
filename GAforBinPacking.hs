@@ -13,11 +13,11 @@ mkRandWeights size (lowerB,upperB) seed = take size (randomRs (lowerB,upperB) (m
 -- representation: each item in the starting weights must appear exactly once in the binPacked
 -- this means the concat of all binpacks must be permutation of the initial weights 
 mkRandBins :: NumBins -> [Weight] -> MkRand Bins
-mkRandBins numBins weights seed =  foldl addWeightToBin binsInit (zip binIndicies weights) 
+mkRandBins numBins weights seed = foldl addWeightToBin binsInit (zip binIndicies weights) 
   where
     binsInit = replicate numBins []
     binIndicies = randomRs (0,numBins-1) (mkStdGen seed)
-    addWeightToBin bins (i,w) = take i bins ++  [w : bins !! i] ++ drop (i + 1) bins
+    addWeightToBin bins (i,w) = updateItemAt i (w : bins !! i) bins
 
 calcTotalWeight :: Bins -> Weight
 calcTotalWeight bins = sum (map sum bins)
