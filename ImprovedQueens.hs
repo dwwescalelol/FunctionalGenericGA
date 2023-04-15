@@ -9,13 +9,10 @@ randQueen :: NQueen -> MkRand Board
 randQueen size seed = shuffle seed [1..size]
 
 qfitness :: Fitness Board
-qfitness xs = length $ concatMap (\(y:ys) -> filter (takes y) ys) (tails $ zip xs [1..])
-  where
-    tails [x] = [[x]]
-    tails (x:xs) = (x:xs) : tails xs
+qfitness xs = length $ concatMap (\(y:ys) -> filter (takes y) ys) ((init . tails) $ zip [1..] xs)
 
 takes :: (Eq a, Num a) => (a, a) -> (a, a) -> Bool
-takes (x1,x2) (y1,y2) = abs (x1-x2) == abs (y1-y2)
+takes (r1,c1) (r2,c2) = abs (r1-r2) == abs (c1-c2)
 
 qstop :: Stop Board
 qstop evalPop = null evalPop || fst (head evalPop) == 0
@@ -50,9 +47,9 @@ collidingPairs xs =  concatMap collidingPairs' (tails (zip [1..] xs))
     collidingPairs' [] = []
     collidingPairs' (x:xs) = zip (repeat x) (filter (takes x) xs)
     
-gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> (Pop (Eval Board), Pop (Eval Board))
+gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
-  = geneticAlgorithm maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
+  = gga maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
   (permCrossover, 2, 1, xProb) (queenMutation, 1, 1, mProb) qmerge qstop
 
 qmerge :: Ord a => [a] -> [a] -> [a]
@@ -65,15 +62,19 @@ qmerge (x:popA) (y:popB)
 
 main :: IO ()
 main = do
-  let n = 14
-  let seed = 23423
-  let maxGen = 4
-  let popSize = 1000
-  let xProb = 0.2
-  let mProb = 0.7
-  let (solution,hallOfFame) = gaForQueens n maxGen popSize (xProb,mProb) seed
-  mapM_ print (take 20 $ sortPop hallOfFame)
-  print "-----------------------------------------------------"
-  print $ length solution
-  print $ head solution
-
+  let n = 20
+  let seed = 2342345
+  let maxGen = 3
+  let popSize = 500
+  let xProb = 0.1
+  let mProb = 0.8
+  putStrLn " --  All Generations --"
+  let solutions = gaForQueens n maxGen  popSize (xProb, mProb) seed
+  let window = 12
+  let myprint (x, ys, n) = do
+                        putStrLn ("Generation " ++ show x)
+                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
+                        print n
+  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
+  putStrLn " --  Last Generation --"  
+  print (length solutions)

@@ -1,7 +1,8 @@
 module GeneticAlgorithm where 
 import System.Random (randomR, mkStdGen, Random (randomRs))
-import Data.List
-import GAUtility
+import Data.List ( (\\), sortBy )
+import GAUtility ( indexOf, segment, swapItemAt )
+import Data.Tuple (swap)
 
 type Seed = Int
 type Size = Int
@@ -73,22 +74,11 @@ permCrossover2 size seed [xs,ys] = [csA ++ (ys \\ csA),csB ++ (xs \\ csB)]
 --
 
 mutationBySwap :: Mutation [a]
-mutationBySwap size seed [xs]
-  | i == j = [xs]
-  | i < j = [mutationBySwap' (i,j) xs]
-  | otherwise = [mutationBySwap' (j,i) xs]
+mutationBySwap size seed [xs] = [swapItemAt (i,j) xs]
     where 
       rs = randomRs (0,size-1) (mkStdGen seed)
       i = head rs
       j = rs !! 1
-
--- where i is 0..n-1 and i < j
-mutationBySwap' :: (Index, Index) -> [a] -> [a]
-mutationBySwap' (i,j) xs = l1 ++ [xs !! j] ++ l2 ++ [xs !! i] ++ l3
-  where
-    l1 = take i xs
-    l2 = drop (succ i) (take j xs)
-    l3 = drop (succ j) xs
 
 mutationBySwap2' :: Index -> Pop [a] -> Pop [a]
 mutationBySwap2' i [c1,c2] = [m1,m2]
@@ -114,8 +104,8 @@ orderedMerge (x:xs) (y:ys)
 -- Population
 --
 
-initPop :: Size -> Size -> MkRand c -> Seed -> Pop c
-initPop popSize chromSize mkRandChrom seed = map mkRandChrom seeds
+initPop :: Size -> MkRand c -> Seed -> Pop c
+initPop popSize mkRandChrom seed = map mkRandChrom seeds
   where
     rnds = randomRs (0 , maxBound :: Seed) (mkStdGen seed)
     seeds = take popSize rnds
@@ -147,23 +137,36 @@ evolve :: Ord c => PopSize -> ChromSize -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Seed -> Pop (Eval c) -> Pop (Eval c)
 evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, crossoverProb) 
   (mutation, mNumParents, mNumChildren, mutationProb) merge seed evaledPop = 
-  childrenOfCrossover `merge` childrenOfMutation `merge` grannies
+  take popSize $ childrenOfCrossover `merge` childrenOfMutation `merge` grannies
 
   where
-    numParentsCrossover = xNumChildren * (floor $ (fromIntegral popSize * crossoverProb) / fromIntegral xNumChildren)
-    numParentsMutation = mNumChildren * (floor $ (fromIntegral popSize * mutationProb) / fromIntegral mNumChildren)
+    numParentsCrossover = xNumParents * floor ((fromIntegral popSize * crossoverProb) / fromIntegral xNumChildren)
+    numParentsMutation = mNumParents * floor ((fromIntegral popSize * mutationProb) / fromIntegral mNumChildren)
     numGrannies = popSize - (numParentsCrossover `div` xNumChildren + numParentsMutation `div` mNumChildren)
     numParents = (xNumParents * numParentsCrossover) + (mNumParents * numParentsMutation) + numGrannies
 
     selectedParents = take numParents (selection (seeds !! 0) evaledPop)
-    parentsForCrossover = take numParentsCrossover $ drop numParentsMutation selectedParents
     parentsForMutation = take numParentsMutation selectedParents
-    grannies = sortPop $ drop (numParentsCrossover + numParentsMutation) selectedParents
+    parentsForCrossover = take numParentsCrossover $ drop numParentsMutation selectedParents
+    grannies = distinct $ mySort $ drop (numParentsCrossover + numParentsMutation) selectedParents
 
     childrenOfCrossover = evalPop fitness $ concatMap (crossover chromSize (seeds !! 1)) (segment xNumParents (map snd parentsForCrossover))
     childrenOfMutation = evalPop fitness $ concatMap (mutation chromSize (seeds !! 2)) (segment mNumParents (map snd parentsForMutation))
 
     seeds = randomRs (0,maxBound) (mkStdGen seed)
+
+myLoop :: [a -> a] -> a -> [a]
+myLoop [] x = [x]
+myLoop (f:fs) x = x: myLoop fs (f x)
+
+gga :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
+  (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> [Pop (Eval c)]
+gga nrGen pSize cSize mkRandC fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, pM) mrg  stop seed    
+   = map (take pSize) evolvedPop
+       where 
+       seeds = randomRs (0,maxBound) (mkStdGen seed)
+       initialPop = evalPop fit (initPop pSize mkRandC (seeds!!(nrGen+1)))
+       evolvedPop = myLoop (map (evolve pSize cSize fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, pM) mrg) (take nrGen seeds)) initialPop
 
 geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> (Pop (Eval c), Pop (Eval c))
@@ -172,11 +175,11 @@ geneticAlgorithm maxGenerations popSize chromSize randChrom fitness selection
     geneticAlgorithm' maxGenerations seed (initialPop,[])
 
     where
-      initialPop = evalPop fitness (initPop popSize chromSize randChrom (seeds !! (maxGenerations + 1)))
+      initialPop = evalPop fitness (initPop popSize randChrom (seeds !! (maxGenerations + 1)))
       seeds = randomRs (0,maxBound) (mkStdGen seed)
 
       geneticAlgorithm' numGeneration currentSeed (evaluatedPop,hallOfFame)
         | numGeneration == 0 || stop evaluatedPop = (evaluatedPop, hallOfFame) 
         | otherwise = geneticAlgorithm' (numGeneration - 1) (seeds !! (numGeneration -1))
-          ((evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, crossoverProb) 
-            (mutation, mNumParents, mNumChildren, mutationProb) merge seed evaluatedPop), (take 5 evaluatedPop ++ hallOfFame))
+          (evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, crossoverProb) 
+            (mutation, mNumParents, mNumChildren, mutationProb) merge seed evaluatedPop, take 5 evaluatedPop ++ hallOfFame)
