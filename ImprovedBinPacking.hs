@@ -1,6 +1,6 @@
 import GeneticAlgorithm
 import GAUtility
-import Data.List ( sort, sortBy )
+import Data.List ( sort, sortBy, (\\) )
 import System.Random (randomR, mkStdGen, Random (randomRs))
 
 type Weight = Int
@@ -43,27 +43,36 @@ stop :: Int -> Stop Bins
 stop minFitness ebins = (fst . head) ebins <= minFitness
 
 binMutate :: Mutation Bins
-binMutate _ _ [bins] = [orderBins (binA : tail (init bins) ++ [binB])]
+binMutate _ s [bins] = [orderBins (binA : tail (init bins) ++ [binB])]
   where
     (binA, binB) = balancedWasteSwap (head bins) (last bins)
 
 -- where binB > binA
 balancedWasteSwap :: Bin -> Bin -> (Bin,Bin)
 balancedWasteSwap binA binB
-  | minSwap < transferIndex = (updateItemAt swapIndexA (binB !! swapIndexB) binA, updateItemAt swapIndexB (binA !! swapIndexA) binB) 
-  | otherwise = (transferItem : binA, transferedBinB)
+  | (a,b) == (0,0) = (binA,binB)
+  | a == 0 = (b:binA, binB \\ [b])
+  | otherwise = ((b:binA) \\ [a], (a:binB) \\ [b])
   where
-    target = div (sum binB - sum binA) 2
-    evaledAllSwaps = map (\x -> map (\y -> abs(y - x - target)) binB) binA
-    indexedSwaps = concatMap (\(x,y) -> zip3 x (repeat y) [0..]) (zip evaledAllSwaps [0..])
-    (minSwap,swapIndexA,swapIndexB) = minimum indexedSwaps
+    target = sum binB - sum binA
+    midTarget = div target 2
 
-    evaledAllTransfers =  map (\x -> abs(x - target)) binB
-    (minTransfer,transferIndex) = minimum (zip evaledAllTransfers [0..])
-    (transferItem,transferedBinB) = removeItemAt transferIndex binB
+    potentialSwaps = [abs (y - x - midTarget) | y <- binB, x <- binA, y - x < target, y > x]
+    potentialTransfer = [abs (y - midTarget) | y <- binB, y < target]
+
+    -- returns singleton list so take head
+    bestTransfer = head [y | y <- binB, abs (y - midTarget) == minimum potentialTransfer]
+    (bestSwapA, bestSwapB) = head [(x,y) | x <- binA, y <- binB, abs (y - x - midTarget) == minimum potentialSwaps]
+
+    (a,b)
+      | null potentialSwaps && null potentialTransfer = (0,0)
+      | null potentialSwaps = (0,bestTransfer)
+      | null potentialTransfer = (bestSwapA, bestSwapB)
+      | abs (bestTransfer - midTarget) <= abs (bestSwapB - bestSwapA - midTarget) = (0,bestTransfer)
+      | otherwise = (bestSwapA, bestSwapB)
 
 binCrossover :: Crossover Bins
-binCrossover numWeights seed [xs,ys] = [childBins]
+binCrossover numWeights seed [xs,ys] = [orderBins childBins]
   where
     binSizes = map length ys
     [childWeights] = permCrossover numWeights seed [concat xs, concat ys]
@@ -94,12 +103,12 @@ gaForBP weights numBins maxGenerations popSize (xProb,mProb)
 
 main :: IO ()
 main = do
-  let weights = mkRandWeights 1000 (1,400) 34
-  let numBins = 30
-  let seed = 2342345
+  let weights = mkRandWeights 30 (2,50) 34
+  let numBins = 10
+  let seed = 23425
   let maxGen = 40
   let popSize = 1000
-  let xProb = 0.1
+  let xProb = 0.0
   let mProb = 0.9
   putStrLn " --  All Generations --"
   let solutions = gaForBP weights numBins maxGen popSize (xProb, mProb) seed

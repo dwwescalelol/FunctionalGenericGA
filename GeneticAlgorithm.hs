@@ -80,12 +80,6 @@ mutationBySwap size seed [xs] = [swapItemAt (i,j) xs]
       i = head rs
       j = rs !! 1
 
-mutationBySwap2' :: Index -> Pop [a] -> Pop [a]
-mutationBySwap2' i [c1,c2] = [m1,m2]
-  where
-    m1 = take i c1 ++ [c2 !! i] ++ drop (i+1) c1
-    m2 = take i c2 ++ [c1 !! i] ++ drop (i+1) c2
-
 --
 -- Merge
 --
@@ -93,7 +87,10 @@ mutationBySwap2' i [c1,c2] = [m1,m2]
 concatMerge :: Merge c
 concatMerge = (++)
 
-orderedMerge :: Ord a => [a] -> [a] -> [a]
+distinctOrderedMerge :: Ord c => Merge c
+distinctOrderedMerge xs ys = orderedMerge (distinct xs) (distinct ys)
+
+orderedMerge :: Ord c => Merge c
 orderedMerge xs [] = xs
 orderedMerge [] ys = ys
 orderedMerge (x:xs) (y:ys)
@@ -155,9 +152,9 @@ evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren
 
     seeds = randomRs (0,maxBound) (mkStdGen seed)
 
-myLoop :: [a -> a] -> a -> [a]
-myLoop [] x = [x]
-myLoop (f:fs) x = x: myLoop fs (f x)
+loop :: [a -> a] -> a -> [a]
+loop [] x = [x]
+loop (f:fs) x = x: loop fs (f x)
 
 gga :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> [Pop (Eval c)]
@@ -166,7 +163,7 @@ gga nrGen pSize cSize mkRandC fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, 
        where 
        seeds = randomRs (0,maxBound) (mkStdGen seed)
        initialPop = evalPop fit (initPop pSize mkRandC (seeds!!(nrGen+1)))
-       evolvedPop = myLoop (map (evolve pSize cSize fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, pM) mrg) (take nrGen seeds)) initialPop
+       evolvedPop = loop (map (evolve pSize cSize fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, pM) mrg) (take nrGen seeds)) initialPop
 
 geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> (Pop (Eval c), Pop (Eval c))

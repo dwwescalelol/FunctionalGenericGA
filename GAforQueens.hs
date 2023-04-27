@@ -39,8 +39,8 @@ qmerge (x:popA) (y:popB)
 
 main :: IO ()
 main = do
-  let n = 12
-  let seed = 2342345
+  let n = 20
+  let seed = 2839845
   let maxGen = 50
   let popSize = 500
   let xProb = 0.6

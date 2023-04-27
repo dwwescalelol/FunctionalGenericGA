@@ -9,23 +9,16 @@ randQueen :: NQueen -> MkRand Board
 randQueen size seed = shuffle seed [1..size]
 
 qfitness :: Fitness Board
-qfitness xs = length $ concatMap (\(y:ys) -> filter (takes y) ys) ((init . tails) $ zip [1..] xs)
+qfitness xs = length $ concatMap (\(y:ys) -> filter (takes y) ys) ((init . tails) $ to2DBoard xs)
 
 takes :: (Eq a, Num a) => (a, a) -> (a, a) -> Bool
-takes (r1,c1) (r2,c2) = abs (r1-r2) == abs (c1-c2)
+takes (c1,r1) (c2,r2) = abs (c1-c2) == abs (r1-r2)
 
 qstop :: Stop Board
 qstop evalPop = null evalPop || fst (head evalPop) == 0
   
-queenCrossover2 :: Crossover Board
-queenCrossover2 size seed [xs,ys] = [c1 ++ (ys \\ c1), c2 ++ (xs \\ c2)]
-  where 
-    c1 = take i xs
-    c2 = take i ys
-    i = mod seed size
-
 queenMutation :: Mutation Board
-queenMutation _ _ [xs] = concatMap mutatedBoards ts
+queenMutation _ _ [xs] = take 20 $ xs:concatMap mutatedBoards ts
   where
     ts = (init . tails) (collidingPairs xs)
 
@@ -42,11 +35,18 @@ mutateBoard b ((c1,_),(c2,_)) ((c3,_),(c4,_)) =
   swapItemAt (c2-1,c4-1) b]
 
 collidingPairs :: Board -> [(Coord,Coord)]
-collidingPairs xs =  concatMap collidingPairs' (tails (zip [1..] xs))
+collidingPairs xs =  concatMap collidingPairs' (tails (to2DBoard xs))
   where
     collidingPairs' [] = []
     collidingPairs' (x:xs) = zip (repeat x) (filter (takes x) xs)
-    
+
+type Board2D = [(Int,Int)]
+to2DBoard :: Board -> Board2D
+to2DBoard b = zip [1..] b
+
+from2DBoard :: Board2D -> Board
+from2DBoard b = map snd b
+
 gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
   = gga maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
@@ -62,11 +62,11 @@ qmerge (x:popA) (y:popB)
 
 main :: IO ()
 main = do
-  let n = 20
-  let seed = 2342345
-  let maxGen = 3
-  let popSize = 500
-  let xProb = 0.1
+  let n = 35
+  let seed = 243345
+  let maxGen = 12
+  let popSize = 400
+  let xProb = 0.0
   let mProb = 0.8
   putStrLn " --  All Generations --"
   let solutions = gaForQueens n maxGen  popSize (xProb, mProb) seed
