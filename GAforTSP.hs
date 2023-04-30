@@ -37,8 +37,8 @@ gaForTSP cities maxGenerations popSize (xProb,mProb) seed
 
 main :: IO ()
 main = do
-  let cities = mkRandCities 26 2314
-  let seed = 1234324
+  let cities = mkRandCities 10 2314
+  let seed = 12324
   let maxGen = 20
   let popSize = 1000
   let xProb = 0.6

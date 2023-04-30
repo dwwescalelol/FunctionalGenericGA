@@ -135,7 +135,6 @@ evolve :: Ord c => PopSize -> ChromSize -> Fitness c -> Selection c ->
 evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, crossoverProb) 
   (mutation, mNumParents, mNumChildren, mutationProb) merge seed evaledPop = 
   take popSize $ childrenOfCrossover `merge` childrenOfMutation `merge` grannies
-
   where
     numParentsCrossover = xNumParents * floor ((fromIntegral popSize * crossoverProb) / fromIntegral xNumChildren)
     numParentsMutation = mNumParents * floor ((fromIntegral popSize * mutationProb) / fromIntegral mNumChildren)
@@ -156,6 +155,12 @@ loop :: [a -> a] -> a -> [a]
 loop [] x = [x]
 loop (f:fs) x = x: loop fs (f x)
 
+loop' :: [Pop (Eval c) -> Pop (Eval c)] -> Stop c -> Pop (Eval c) -> [Pop (Eval c)]
+loop' [] stop x = [x] 
+loop' (f:fs) stop x
+  | stop x = [x]
+  | otherwise =  x: loop' fs stop (f x)
+
 gga :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> [Pop (Eval c)]
 gga nrGen pSize cSize mkRandC fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, pM) mrg  stop seed    
@@ -163,7 +168,7 @@ gga nrGen pSize cSize mkRandC fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, 
        where 
        seeds = randomRs (0,maxBound) (mkStdGen seed)
        initialPop = evalPop fit (initPop pSize mkRandC (seeds!!(nrGen+1)))
-       evolvedPop = loop (map (evolve pSize cSize fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, pM) mrg) (take nrGen seeds)) initialPop
+       evolvedPop = loop' (map (evolve pSize cSize fit sel (xo, nPrsX, nChdX, pX) (mu, nPrsM, nChdM, pM) mrg) (take nrGen seeds)) stop initialPop
 
 geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> (Pop (Eval c), Pop (Eval c))
@@ -172,8 +177,8 @@ geneticAlgorithm maxGenerations popSize chromSize randChrom fitness selection
     geneticAlgorithm' maxGenerations seed (initialPop,[])
 
     where
-      initialPop = evalPop fitness (initPop popSize randChrom (seeds !! (maxGenerations + 1)))
       seeds = randomRs (0,maxBound) (mkStdGen seed)
+      initialPop = evalPop fitness (initPop popSize randChrom (seeds !! (maxGenerations + 1)))
 
       geneticAlgorithm' numGeneration currentSeed (evaluatedPop,hallOfFame)
         | numGeneration == 0 || stop evaluatedPop = (evaluatedPop, hallOfFame) 

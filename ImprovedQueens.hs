@@ -18,7 +18,7 @@ qstop :: Stop Board
 qstop evalPop = null evalPop || fst (head evalPop) == 0
   
 queenMutation :: Mutation Board
-queenMutation _ _ [xs] = take 20 $ xs:concatMap mutatedBoards ts
+queenMutation _ _ [xs] = take 35 $ xs:concatMap mutatedBoards ts
   where
     ts = (init . tails) (collidingPairs xs)
 
@@ -62,7 +62,7 @@ qmerge (x:popA) (y:popB)
 
 main :: IO ()
 main = do
-  let n = 35
+  let n = 25
   let seed = 243345
   let maxGen = 12
   let popSize = 400
