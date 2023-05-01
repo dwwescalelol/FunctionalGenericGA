@@ -1,6 +1,6 @@
 module GAUtility where
-import System.Random (randomR, mkStdGen, Random (randomRs))
-import GHC.Stack (HasCallStack,prettyCallStack,callStack)
+import System.Random
+import GHC.Stack
 
 adjacentPairs :: [a] -> [(a, a)]
 adjacentPairs [] = []

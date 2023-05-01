@@ -1,7 +1,7 @@
 import GeneticAlgorithm
 import GAUtility
-import Data.List ( sort, sortBy, (\\) )
-import System.Random (randomR, mkStdGen, Random (randomRs))
+import Data.List
+import System.Random
 
 type Weight = Int
 type Bin = [Weight]
