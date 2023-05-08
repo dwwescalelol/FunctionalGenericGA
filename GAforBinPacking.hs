@@ -1,6 +1,6 @@
 import GeneticAlgorithm
 import GAUtility
-import System.Random (randomR, mkStdGen, Random (randomRs))
+import System.Random
 
 type Weight = Int
 type Bin = [Weight]
@@ -27,48 +27,50 @@ fitness average bins = sum (map (abs . (average -) . sum) bins)
 
 stop :: Int -> Stop Bins
 stop minFitness ebins = (fst . head) ebins <= minFitness
-
+  
 binMutate :: Mutation Bins
 binMutate numBins seed [bins]
-  | binIndexA == binIndexB = [bins]
-  | otherwise = [updateItemAt binIndexA newBinA (updateItemAt binIndexB newBinB bins)]
+  | index1 == index2 = [bins]
+  | null bins1 && null bins2 = [bins]
+  | null bins1 = updateBins (transferWeight bins2 newSeed)
+  | null bins2 = updateBins (transferWeight bins1 newSeed)
+  | otherwise = updateBins (swapWeight (bins1,bins2) newSeed)
   where
-    [binIndexA, binIndexB, newSeed] = take 3 $ randomRs (0,numBins-1) (mkStdGen seed)
-    (newBinA, newBinB) = swap1Waste (bins !! binIndexA) (bins !! binIndexB) newSeed
+    (bins1, bins2) = (bins !! index1, bins !! index2)
+    [index1, index2, newSeed] = take 3 $ randomRs (0,numBins-1) (mkStdGen seed)
+    updateBins (bin1, bin2) = [updateItemAt index1 bin1 (updateItemAt index2 bin2 bins)]
 
-swap1Waste :: Bin -> Bin -> Seed -> (Bin, Bin)
-swap1Waste binA binB seed
-  | null binA && null binB = ([],[])
-  | null binB = ([itemA],removedA)
-  | null binA = ([itemB],removedB)
-  | otherwise = (updateItemAt i (binB !! j) binA, updateItemAt j (binA !! i) binB)
+transferWeight :: Bin -> Seed -> (Bin, Bin)
+transferWeight bin seed = ([weight], reducedBin)
   where
-    seeds = randomRs (minBound,maxBound) (mkStdGen seed)
-    i = fst $ randomR (0,length binA-1) (mkStdGen (seeds !! 0))
-    j = fst $ randomR (0,length binB-1) (mkStdGen (seeds !! 1))
-    (itemA, removedA) = removeItemAt i binA
-    (itemB, removedB) = removeItemAt j binB
+    (weight, reducedBin) = removeItemAt i bin
+    i = fst $ randomR (0, length bin-1) (mkStdGen seed)
 
-binCrossover :: Crossover Bins
-binCrossover numWeights seed [xs,ys] = [childBins]
+swapWeight :: (Bin,Bin) -> Seed -> (Bin, Bin)
+swapWeight (bin1,bin2) seed = (updateItemAt i (bin2 !! j) bin1, updateItemAt j (bin1 !! i) bin2)
   where
-    binSizes = map length ys
-    [childWeights] = permCrossover numWeights seed [concat xs, concat ys]
-    childBins = splitList childWeights binSizes
+    [seed1, seed2] = take 2 $ randomRs (minBound,maxBound) (mkStdGen seed)
+    i = fst $ randomR (0,length bin1-1) (mkStdGen seed1)
+    j = fst $ randomR (0,length bin2-1) (mkStdGen seed2)
 
-binCrossover2 :: Crossover Bins
-binCrossover2 numWeights seed [xs,ys] = [childA,childB]
-  where
-    (binSizesA,binSizesB) = (map length xs, map length ys)
-    [childWeightsA,childWeightsB] = permCrossover2 numWeights seed [concat xs, concat ys]
-    childA = splitList childWeightsA binSizesA
-    childB = splitList childWeightsB binSizesB
+unpack :: Bins -> [Weight]
+unpack = concat
+
+repack :: [Size] -> Bin -> Bins
+repack [s] bin = [take s bin]
+repack (s:ss)  bin = take s bin : repack ss (drop s bin)
 
 naiveBinMutate :: Mutation Bins
-naiveBinMutate numBins seed [bins] = [splitList (head updatedWeights) windows]
+naiveBinMutate n seed [bins] = map (repack binSizes) (mutationBySwap (length bins) seed [unpack bins])
+    where
+        binSizes = map length bins
+
+binCrossover :: Crossover Bins
+binCrossover numWeights seed [bins1,bins2] = [childBins]
   where
-    windows = map length bins
-    updatedWeights = mutationBySwap numBins seed [concat bins]
+    binSizes = map length bins2
+    [childWeights] = permCrossover numWeights seed [unpack bins1, unpack bins2]
+    childBins = repack (map length bins2) childWeights 
 
 gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> (Pop (Eval Bins), Pop (Eval Bins))
 gaForBP weights numBins maxGenerations popSize (xProb,mProb)

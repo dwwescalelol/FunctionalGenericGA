@@ -1,6 +1,6 @@
 import GeneticAlgorithm
 import GAUtility
-import System.Random (randomR, mkStdGen, Random (randomRs))
+import System.Random
 
 type City = (String,Int,Int)
 type Route = [City]
@@ -11,19 +11,22 @@ mkRandCities size seed = zip3 (take size (map singleton ['A'..'Z'])) (take size 
   where
     seeds = randomRs (2,98) (mkStdGen seed)
     singleton x = [x]
-    
+
 mkRandRoute :: Route -> MkRand Route
 mkRandRoute cities seed = head cities : shuffle seed (tail cities)
 
-distance :: City -> City -> Distance
-distance (n1,x1,y1) (n2,x2,y2) = sqrt $ fromIntegral((x2 - x1)^2 + (y2 - y1)^2)
+distance :: (City, City) -> Distance
+distance ((n1,x1,y1),(n2,x2,y2)) = sqrt $ fromIntegral ((x2 - x1)^2 + (y2 - y1)^2)
+
+-- fitness :: Fitness Route
+-- fitness route = round $ sum $ zipWith distance route (tail route ++ [head route])
 
 fitness :: Fitness Route
-fitness route = round $ sum $ zipWith distance route (tail route ++ [head route])
+fitness route = round $ sum $ map distance (legs route)
 
 legs :: Route -> [(City, City)]
 legs route = zip route (tail route ++ [head route])
-  
+
 stop :: Stop Route
 stop = const False
 
@@ -31,9 +34,8 @@ tspMutate :: Mutation Route
 tspMutate size seeds [route] = map (head route :) (mutationBySwap size seeds [tail route])
 
 gaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> (Pop (Eval Route), Pop (Eval Route))
-gaForTSP cities maxGenerations popSize (xProb,mProb) seed
-  = geneticAlgorithm maxGenerations popSize (length cities) (mkRandRoute cities) fitness rselection
-  (permCrossover, 2, 1, xProb) (tspMutate, 1, 1, mProb) orderedMerge stop seed
+gaForTSP cities maxGenerations popSize (xProb,mProb) = geneticAlgorithm maxGenerations popSize (length cities) (mkRandRoute cities) fitness rselection
+  (permCrossover, 2, 1, xProb) (tspMutate, 1, 1, mProb) orderedMerge stop
 
 main :: IO ()
 main = do

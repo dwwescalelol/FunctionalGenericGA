@@ -15,26 +15,11 @@ qfitness xs = length $ concatMap (\(y:ys) -> filter (takes y) ys) ((init . tails
 
 qstop :: Stop Board
 qstop evalPop = null evalPop || fst (head evalPop) == 0
-  
-queenCrossover2 :: Crossover Board
-queenCrossover2 size seed [xs,ys] = [c1 ++ (ys \\ c1), c2 ++ (xs \\ c2)]
-  where 
-    c1 = take i xs
-    c2 = take i ys
-    i = mod seed size
 
 gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
   = gga maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
-  (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) qmerge qstop
-
-qmerge :: Ord a => [a] -> [a] -> [a]
-qmerge popA [] = popA
-qmerge [] popB = popB
-qmerge (x:popA) (y:popB)
-  | x == y = qmerge (x:popA) popB
-  | x < y = x : qmerge popA (y:popB)
-  | otherwise = y : qmerge (x:popA) popB
+  (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge qstop
 
 main :: IO ()
 main = do

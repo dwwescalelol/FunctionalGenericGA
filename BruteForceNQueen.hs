@@ -7,9 +7,9 @@ nQueens n = nQueens' n n
 
 nQueens' :: Int -> Int -> [Board2D]
 nQueens' n 1  = map (\c -> [(1,c)]) [1 ..n]
-nQueens' n r  = [ (r,c) : qs | c <- [1..n], qs <- nQueens' n (r-1), 
-                  and (map (not . takes (r,c) ) qs) ]
+nQueens' n r  = [ (r,c) : qs | c <- [1..n], qs <- nQueens' n (r-1),
+                  not (any (takes (r,c)) qs) ]
 
 takes :: (Row, Column) -> (Row, Column) -> Bool
-takes (r1, c1) (r2, c2) =   
+takes (r1, c1) (r2, c2) =
     r1 == r2 || c1 == c2 || abs (r1-r2) == abs (c1-c2)

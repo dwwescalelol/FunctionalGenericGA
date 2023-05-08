@@ -1,7 +1,7 @@
 import GeneticAlgorithm
 import GAUtility
-import Data.List ( sort, sortBy, (\\) )
-import System.Random (randomR, mkStdGen, Random (randomRs))
+import Data.List
+import System.Random
 
 type Weight = Int
 type Bin = [Weight]
@@ -103,11 +103,11 @@ gaForBP weights numBins maxGenerations popSize (xProb,mProb)
 
 main :: IO ()
 main = do
-  let weights = mkRandWeights 30 (2,50) 34
-  let numBins = 10
-  let seed = 23425
-  let maxGen = 40
-  let popSize = 1000
+  let weights = mkRandWeights 1000 (10,50) 34
+  let numBins = 15
+  let seed = 123456
+  let maxGen = 1000
+  let popSize = 500
   let xProb = 0.0
   let mProb = 0.9
   putStrLn " --  All Generations --"
