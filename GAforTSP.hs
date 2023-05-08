@@ -18,9 +18,6 @@ mkRandRoute cities seed = head cities : shuffle seed (tail cities)
 distance :: (City, City) -> Distance
 distance ((n1,x1,y1),(n2,x2,y2)) = sqrt $ fromIntegral ((x2 - x1)^2 + (y2 - y1)^2)
 
--- fitness :: Fitness Route
--- fitness route = round $ sum $ zipWith distance route (tail route ++ [head route])
-
 fitness :: Fitness Route
 fitness route = round $ sum $ map distance (legs route)
 
