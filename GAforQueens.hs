@@ -2,23 +2,29 @@ import GeneticAlgorithm
 import GAUtility
 import Data.List
 
-type Board = [Int]
 type NQueen = Int
+type Row = Int; 
+type Column = Int
+type Board = [Column]
+type Board2D = [(Row, Column)]; 
 
 randQueen :: NQueen -> MkRand Board
 randQueen size seed = shuffle seed [1..size]
 
 qfitness :: Fitness Board
-qfitness xs = length $ concatMap (\(y:ys) -> filter (takes y) ys) ((init . tails) $ zip xs [1..])
+qfitness b = length $ concatMap (\(q:qs) -> filter (takes q) qs) ((init . tails) board2D)
   where
-    takes (r1,c1) (r2,c2) = abs (r1-r2) == abs (c1-c2)
+    board2D = zip [1..] b
+
+takes :: (Row, Column) -> (Row, Column) -> Bool 
+takes (r1,c1) (r2,c2) = abs (r1-r2) == abs (c1-c2)
 
 qstop :: Stop Board
 qstop evalPop = null evalPop || fst (head evalPop) == 0
 
 gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
-  = geneticAlgorithm maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
+  = geneticAlgorithm maxGenerations popSize nQueens (RandChrom (randQueen nQueens)) qfitness rselection
   (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge qstop
 
 main :: IO ()

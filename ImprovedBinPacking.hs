@@ -78,23 +78,9 @@ binCrossover numWeights seed [xs,ys] = [orderBins childBins]
     [childWeights] = permCrossover numWeights seed [concat xs, concat ys]
     childBins = splitList childWeights binSizes
 
-binCrossover2 :: Crossover Bins
-binCrossover2 numWeights seed [xs,ys] = [childA,childB]
-  where
-    (binSizesA,binSizesB) = (map length xs, map length ys)
-    [childWeightsA,childWeightsB] = permCrossover2 numWeights seed [concat xs, concat ys]
-    childA = splitList childWeightsA binSizesA
-    childB = splitList childWeightsB binSizesB
-
-naiveBinMutate :: Mutation Bins
-naiveBinMutate numBins seed [bins] = [splitList (head updatedWeights) windows]
-  where
-    windows = map length bins
-    updatedWeights = mutationBySwap numBins seed [concat bins]
-
 gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Bins)]
 gaForBP weights numBins maxGenerations popSize (xProb,mProb)
-  = geneticAlgorithm maxGenerations popSize numBins (mkRandBins numBins weights) fitness rselection
+  = geneticAlgorithm maxGenerations popSize numBins (RandChrom (mkRandBins numBins weights)) fitness rselection
   (binCrossover, 2, 1, xProb) (binMutate, 1, 1, mProb) orderedMerge (stop minWaste)
     where
       totalSum = sum weights

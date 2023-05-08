@@ -6,6 +6,10 @@ type City = (String,Int,Int)
 type Route = [City]
 type Distance = Double
 
+
+cities10 :: Route
+cities10 = [("A",86,22),("B",63,50),("C",17,46),("D",66,28),("E",76,49),("F",47,40),("G",11,63),("H",36,27),("I",29,14),("J",2,9)]
+
 mkRandCities :: Int -> Seed -> Route
 mkRandCities size seed = zip3 (take size (map singleton ['A'..'Z'])) (take size seeds) (take size (drop size seeds))
   where
@@ -31,12 +35,12 @@ tspMutate :: Mutation Route
 tspMutate size seeds [route] = map (head route :) (mutationBySwap size seeds [tail route])
 
 gaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Route)]
-gaForTSP cities maxGenerations popSize (xProb,mProb) = geneticAlgorithm maxGenerations popSize (length cities) (mkRandRoute cities) fitness rselection
-  (permCrossover, 2, 1, xProb) (tspMutate, 1, 1, mProb) orderedMerge stop
+gaForTSP cities maxGenerations popSize (xProb,mProb) = geneticAlgorithm maxGenerations popSize (length cities - 1) (RandChrom (mkRandRoute cities)) fitness rselection
+  (permCrossover, 2, 1, xProb) (tspMutate, 1, 1, mProb) distinctOrderedMerge stop
 
 main :: IO ()
 main = do
-  let cities = mkRandCities 10 2314
+  let cities = cities10
   let seed = 123456
   let maxGen = 50
   let popSize = 500

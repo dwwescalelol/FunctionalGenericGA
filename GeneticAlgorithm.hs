@@ -157,11 +157,17 @@ loop (f:fs) stop x
   | stop x = [x]
   | otherwise =  x: loop fs stop (f x)
 
-geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
+
+data InitialPopulation c = RandChrom (MkRand c) | InitialisedPop (Pop c)
+
+geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> InitialPopulation c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> [Pop (Eval c)]
-geneticAlgorithm maxGenerations popSize chromSize mkRandChrom fitness selection (crossover, xNumParents, xNumChildren, xProb) (mu, mNumParents, mNumChildren, mProb) mrg  stop seed    
+geneticAlgorithm maxGenerations popSize chromSize initialPopulation fitness selection (crossover, xNumParents, xNumChildren, xProb) (mutation, mNumParents, mNumChildren, mProb) merge  stop seed
    = map (take popSize) evolvedPop
-       where 
-       seeds = randomRs (0,maxBound) (mkStdGen seed)
-       initialPop = evalPop fitness (initPop popSize mkRandChrom (seeds!!(maxGenerations+1)))
-       evolvedPop = loop (map (evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, xProb) (mu, mNumParents, mNumChildren, mProb) mrg) (take maxGenerations seeds)) stop initialPop
+       where
+       seeds = randomRs (0, maxBound) (mkStdGen seed)
+       initialPop
+         | RandChrom mkRandChrom <- initialPopulation = evalPop fitness (initPop popSize mkRandChrom (seeds !! (maxGenerations + 1)))
+         | InitialisedPop pop <- initialPopulation = evalPop fitness pop
+       evolvedPop = loop (map (evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, xProb) (mutation, mNumParents, mNumChildren, mProb) merge) (take maxGenerations seeds)) stop initialPop
+

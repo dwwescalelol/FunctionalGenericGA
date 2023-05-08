@@ -74,7 +74,7 @@ binCrossover numWeights seed [bins1,bins2] = [childBins]
 
 gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Bins)]
 gaForBP weights numBins maxGenerations popSize (xProb,mProb)
-  = geneticAlgorithm maxGenerations popSize numBins (mkRandBins numBins weights) (fitness average) rselection
+  = geneticAlgorithm maxGenerations popSize numBins (RandChrom (mkRandBins numBins weights)) (fitness average) rselection
   (binCrossover, 2, 1, xProb) (binMutate, 1, 1, mProb) orderedMerge (stop minWaste)
     where
       totalSum = sum weights

@@ -33,7 +33,7 @@ mkGreedyRoute cities rate seed = prGreedyRoute rate (head newcities) (tail newci
     newcities = drop i cities ++ take i cities 
 
 prGreedyRoute ::  Int -> City -> [City] ->[Int] -> Route
-prGreedyRoute prob start [c] (s:seeds) = [start, c] 
+prGreedyRoute prob start [] (s:seeds) = [start] 
 prGreedyRoute prob start cities (s:seeds) = start : prGreedyRoute prob nextCity (cities\\[nextCity]) seeds
   where
     closest = closestCity start cities
@@ -41,6 +41,14 @@ prGreedyRoute prob start cities (s:seeds) = start : prGreedyRoute prob nextCity 
     nextCity
       | prob > s = closest
       | otherwise = sndClosest
+
+myGreedy :: City -> [City] -> Route
+myGreedy start [] = [start] 
+myGreedy start cities = start : myGreedy closest (cities\\[closest])
+  where
+    closest = closestCity start cities
+    sndClosest = closestCity start (cities\\[closest])
+
 
 closestCity :: City -> [City]  -> City
 closestCity start [c] = c
@@ -50,21 +58,24 @@ closestCity start cs = head [c | c <- cs, dist start c == minimum dist2AllCities
     dist x y = distance (x,y)
 
 mkRandRoute :: MkRand Route
-mkRandRoute _ = cities10
+mkRandRoute seed = myGreedy c (cities10\\[c])
+  where
+    index = seed `mod` 9
+    c = cities10 !! index 
 
 gaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Route)]
 gaForTSP cities maxGenerations popSize (xProb,mProb) 
-  = geneticAlgorithm maxGenerations popSize (length cities) (mkRandRoute) fitness rselection
+  = geneticAlgorithm maxGenerations popSize (length cities) (RandChrom mkRandRoute) fitness rselection
     (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge stop
 
 main :: IO ()
 main = do
 
   let seed = 1234567
-  let maxGen = 1000
+  let maxGen = 50
   let popSize = 500
-  let xProb = 0.0
-  let mProb = 0.9
+  let xProb = 0.5
+  let mProb = 0.5
   putStrLn " --  All Generations --"
   let solutions = gaForTSP cities10 maxGen popSize (xProb, mProb) seed
   let window = 12
