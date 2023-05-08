@@ -96,7 +96,19 @@ orderedMerge [] ys = ys
 orderedMerge (x:xs) (y:ys)
   | x <= y = x : orderedMerge xs (y:ys)
   | otherwise = y : orderedMerge (x:xs) ys
-  
+
+
+--
+-- Stop
+--
+
+dontStop :: Stop c
+dontStop = const False
+
+stopFit :: Int -> Stop c
+stopFit f evalPop = null evalPop || fst (head evalPop) == f
+
+
 --
 -- Population
 --

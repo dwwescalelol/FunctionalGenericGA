@@ -17,9 +17,6 @@ qfitness xs = length $ concatMap (\(y:ys) -> filter (takes y) ys) (init . tails 
 takes :: (Eq a, Num a) => (a, a) -> (a, a) -> Bool
 takes (c1,r1) (c2,r2) = abs (c1-c2) == abs (r1-r2)
 
-qstop :: Stop Board
-qstop evalPop = null evalPop || fst (head evalPop) == 0
-
 to2DBoard :: Board -> Board2D
 to2DBoard = zip [1..]
 
@@ -47,8 +44,8 @@ collidingPairs b = concatMap collidingPairs' (tails (to2DBoard b))
 
 gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
-  = geneticAlgorithm maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
-  (permCrossover, 2, 1, xProb) (queenMutation, 1, 4, mProb) orderedMerge qstop
+  = geneticAlgorithm maxGenerations popSize nQueens (RandChrom (randQueen nQueens)) qfitness rselection
+  (permCrossover, 2, 1, xProb) (queenMutation, 1, 4, mProb) orderedMerge (stopFit 0)
 
 main :: IO ()
 main = do

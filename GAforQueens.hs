@@ -19,13 +19,10 @@ qfitness b = length $ concatMap (\(q:qs) -> filter (takes q) qs) ((init . tails)
 takes :: (Row, Column) -> (Row, Column) -> Bool 
 takes (r1,c1) (r2,c2) = abs (r1-r2) == abs (c1-c2)
 
-qstop :: Stop Board
-qstop evalPop = null evalPop || fst (head evalPop) == 0
-
 gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
   = geneticAlgorithm maxGenerations popSize nQueens (RandChrom (randQueen nQueens)) qfitness rselection
-  (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge qstop
+  (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge (stopFit 0)
 
 main :: IO ()
 main = do

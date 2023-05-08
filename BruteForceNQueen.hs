@@ -10,7 +10,7 @@ queens :: Size -> [Board]
 queens n = foldl (updateBoards n) [[]] [1..n]
 
 updateBoards :: Size -> [Board] -> Int -> [Board]
-updateBoards n boards _ = concatMap (nextBoards n) boards
+updateBoards n boards c = concatMap (nextBoards n) boards
 
 nextBoards :: Size -> Board -> [Board]
 nextBoards n ys = [x : ys | x <- [1..n] \\ ys, safe x (zip [1..] ys)]
