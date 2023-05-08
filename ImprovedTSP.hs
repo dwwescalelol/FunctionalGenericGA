@@ -54,7 +54,7 @@ mkRandRoute _ = cities10
 
 gaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Route)]
 gaForTSP cities maxGenerations popSize (xProb,mProb) 
-  = gga maxGenerations popSize (length cities) (mkRandRoute) fitness rselection
+  = geneticAlgorithm maxGenerations popSize (length cities) (mkRandRoute) fitness rselection
     (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge stop
 
 main :: IO ()

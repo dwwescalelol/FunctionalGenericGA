@@ -18,7 +18,7 @@ qstop evalPop = null evalPop || fst (head evalPop) == 0
 
 gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
-  = gga maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
+  = geneticAlgorithm maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
   (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge qstop
 
 main :: IO ()

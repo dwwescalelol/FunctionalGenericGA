@@ -30,20 +30,24 @@ stop = const False
 tspMutate :: Mutation Route
 tspMutate size seeds [route] = map (head route :) (mutationBySwap size seeds [tail route])
 
-gaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> (Pop (Eval Route), Pop (Eval Route))
+gaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Route)]
 gaForTSP cities maxGenerations popSize (xProb,mProb) = geneticAlgorithm maxGenerations popSize (length cities) (mkRandRoute cities) fitness rselection
   (permCrossover, 2, 1, xProb) (tspMutate, 1, 1, mProb) orderedMerge stop
 
 main :: IO ()
 main = do
   let cities = mkRandCities 10 2314
-  let seed = 12324
-  let maxGen = 20
-  let popSize = 1000
+  let seed = 123456
+  let maxGen = 50
+  let popSize = 500
   let xProb = 0.6
-  let mProb = 0.3
-  let (solution,hallOfFame) = gaForTSP cities maxGen popSize (xProb,mProb) seed
-  mapM_ print (take 20 $ sortPop hallOfFame)
-  print "-----------------------------------------------------"
-  print $ length solution
-  print $ head solution
+  let mProb = 0.2
+  putStrLn " --  All Generations --"
+  let solutions = gaForTSP cities maxGen popSize (xProb,mProb) seed
+  let window = 12
+  let myprint (x, ys, z) = do
+                        putStrLn ("Generation " ++ show x ++ ", Size " ++ show z)
+                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
+  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
+  putStrLn " --  Last Generation --"  
+  print (length solutions)

@@ -72,7 +72,7 @@ binCrossover numWeights seed [bins1,bins2] = [childBins]
     [childWeights] = permCrossover numWeights seed [unpack bins1, unpack bins2]
     childBins = repack (map length bins2) childWeights 
 
-gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> (Pop (Eval Bins), Pop (Eval Bins))
+gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Bins)]
 gaForBP weights numBins maxGenerations popSize (xProb,mProb)
   = geneticAlgorithm maxGenerations popSize numBins (mkRandBins numBins weights) (fitness average) rselection
   (binCrossover, 2, 1, xProb) (binMutate, 1, 1, mProb) orderedMerge (stop minWaste)
@@ -85,14 +85,17 @@ main :: IO ()
 main = do
   let weights = mkRandWeights 30 (2,50) 486237
   let numBins = 10
-  let seed = 46234
-  let maxGen = 30
-  let popSize = 1000
-  let xProb = 0.3
-  let mProb = 0.6
-  let (solution,hallOfFame) = gaForBP weights numBins maxGen popSize (xProb,mProb) seed
-  mapM_ print (take 20 $ sortPop hallOfFame)
-  print "-----------------------------------------------------"
-  print $ length solution
-  print $ head solution
-  print $ map sum (snd $ head solution)
+  let seed = 123456
+  let maxGen = 50
+  let popSize = 500
+  let xProb = 0.6
+  let mProb = 0.2
+  putStrLn " --  All Generations --"
+  let solutions = gaForBP weights numBins maxGen popSize (xProb,mProb) seed
+  let window = 12
+  let myprint (x, ys, z) = do
+                        putStrLn ("Generation " ++ show x ++ ", Size " ++ show z)
+                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
+  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
+  putStrLn " --  Last Generation --"  
+  print (length solutions)
