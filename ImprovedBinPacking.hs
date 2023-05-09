@@ -1,25 +1,9 @@
 import GeneticAlgorithm
-import GAUtility
+import GAforBinPacking hiding(gaForBP,binMutate,fitness,main)
 import Data.List
-import System.Random
 
-type Weight = Int
-type Bin = [Weight]
-type Bins = [Bin]
-type NumBins = Int
-
--- assume: first bin is lightes, last is heaviest. First item in each bin is lightes, end item is heaviest
-mkRandWeights :: Int -> (Int,Int) -> Seed -> [Weight]
-mkRandWeights size (lowerB,upperB) seed = take size (randomRs (lowerB,upperB) (mkStdGen seed))
-
--- representation: each item in the starting weights must appear exactly once in the binPacked
--- this means the concat of all binpacks must be permutation of the initial weights 
-mkRandBins :: NumBins -> [Weight] -> MkRand Bins
-mkRandBins numBins weights seed = orderBins $ foldl addWeightToBin binsInit (zip binIndicies weights) 
-  where
-    binsInit = replicate numBins []
-    binIndicies = randomRs (0,numBins-1) (mkStdGen seed)
-    addWeightToBin bins (i,w) = updateItemAt i (w : bins !! i) bins
+mkRandOrderedBins :: NumBins -> [Weight] -> MkRand Bins
+mkRandOrderedBins numBins weights seed = orderBins (mkRandBins numBins weights seed)
 
 orderBins :: Bins -> Bins 
 orderBins bins = map snd (sortBy binOrder (zip (map sum bins) (map sort bins)))
@@ -31,16 +15,10 @@ orderBins bins = map snd (sortBy binOrder (zip (map sum bins) (map sort bins)))
       | w1 == w2 && b1 > b2 = GT
       | otherwise = EQ
 
-calcTotalWeight :: Bins -> Weight
-calcTotalWeight bins = sum (map sum bins)
-
 fitness :: Fitness Bins
 fitness bins = maximum binWeights - minimum binWeights
   where
     binWeights = map sum bins
-
-stop :: Int -> Stop Bins
-stop minFitness ebins = (fst . head) ebins <= minFitness
 
 binMutate :: Mutation Bins
 binMutate _ s [bins] = [orderBins (binA : tail (init bins) ++ [binB])]
@@ -71,16 +49,9 @@ balancedWasteSwap binA binB
       | abs (bestTransfer - midTarget) <= abs (bestSwapB - bestSwapA - midTarget) = (0,bestTransfer)
       | otherwise = (bestSwapA, bestSwapB)
 
-binCrossover :: Crossover Bins
-binCrossover numWeights seed [xs,ys] = [orderBins childBins]
-  where
-    binSizes = map length ys
-    [childWeights] = permCrossover numWeights seed [concat xs, concat ys]
-    childBins = splitList childWeights binSizes
-
 gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Bins)]
 gaForBP weights numBins maxGenerations popSize (xProb,mProb)
-  = geneticAlgorithm maxGenerations popSize numBins (mkRandBins numBins weights) fitness rselection
+  = geneticAlgorithm maxGenerations popSize numBins (mkRandOrderedBins numBins weights) fitness rselection
   (binCrossover, 2, 1, xProb) (binMutate, 1, 1, mProb) orderedMerge (stop minWaste)
     where
       totalSum = sum weights

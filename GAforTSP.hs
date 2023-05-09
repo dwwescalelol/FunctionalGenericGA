@@ -1,3 +1,4 @@
+module GAforTSP where
 import GeneticAlgorithm
 import GAUtility
 import System.Random
