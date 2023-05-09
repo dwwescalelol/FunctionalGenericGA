@@ -87,9 +87,6 @@ mutationBySwap size seed [xs] = [swapItemAt (i,j) xs]
 concatMerge :: Merge c
 concatMerge = (++)
 
-distinctOrderedMerge :: Ord c => Merge c
-distinctOrderedMerge xs ys = orderedMerge (distinct xs) (distinct ys)
-
 orderedMerge :: Ord c => Merge c
 orderedMerge xs [] = xs
 orderedMerge [] ys = ys
@@ -97,6 +94,8 @@ orderedMerge (x:xs) (y:ys)
   | x <= y = x : orderedMerge xs (y:ys)
   | otherwise = y : orderedMerge (x:xs) ys
 
+distinctOrderedMerge :: Ord c => Merge c
+distinctOrderedMerge xs ys = orderedMerge (distinct xs) (distinct ys)
 
 --
 -- Stop
@@ -107,7 +106,6 @@ dontStop = const False
 
 stopFit :: Int -> Stop c
 stopFit f evalPop = null evalPop || fst (head evalPop) == f
-
 
 --
 -- Population
@@ -169,17 +167,11 @@ loop (f:fs) stop x
   | stop x = [x]
   | otherwise =  x: loop fs stop (f x)
 
-
-data InitialPopulation c = RandChrom (MkRand c) | InitialisedPop (Pop c)
-
-geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> InitialPopulation c -> Fitness c -> Selection c ->
+geneticAlgorithm :: Ord c => MaxGenerations -> PopSize -> ChromSize -> MkRand c -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Stop c -> Seed -> [Pop (Eval c)]
-geneticAlgorithm maxGenerations popSize chromSize initialPopulation fitness selection (crossover, xNumParents, xNumChildren, xProb) (mutation, mNumParents, mNumChildren, mProb) merge  stop seed
+geneticAlgorithm maxGenerations popSize chromSize mkRandChrom fitness selection (crossover, xNumParents, xNumChildren, xProb) (mutation, mNumParents, mNumChildren, mProb) merge  stop seed
    = map (take popSize) evolvedPop
        where
        seeds = randomRs (0, maxBound) (mkStdGen seed)
-       initialPop
-         | RandChrom mkRandChrom <- initialPopulation = evalPop fitness (initPop popSize mkRandChrom (seeds !! (maxGenerations + 1)))
-         | InitialisedPop pop <- initialPopulation = evalPop fitness pop
+       initialPop = evalPop fitness (initPop popSize mkRandChrom (seeds !! (maxGenerations + 1)))
        evolvedPop = loop (map (evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, xProb) (mutation, mNumParents, mNumChildren, mProb) merge) (take maxGenerations seeds)) stop initialPop
-
