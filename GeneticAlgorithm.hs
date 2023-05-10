@@ -39,7 +39,7 @@ rselection seed evalPop = map (evalPop !!) indices
     randomNumbers = randomRs (0, highestAccFitness - 1) (mkStdGen seed)
     indices = map (indexOf accFitness) randomNumbers
 
-tournementSelection :: Ord c => Selection c
+tournementSelection :: Selection c
 tournementSelection seed evalPop = map (fitterChrom evalPop) (segment 2 indicies)
   where
     indicies = randomRs (0, length evalPop - 1) (mkStdGen seed)
@@ -48,9 +48,8 @@ tournementSelection seed evalPop = map (fitterChrom evalPop) (segment 2 indicies
       | otherwise = c2
         where [c1,c2] = [evaledPop !! i, evalPop !! j]
 
-
 eliteSelection :: Selection c
-eliteSelection seed evalPop = evalPop
+eliteSelection _ = concat . repeat
 
 --
 -- Crossover
@@ -64,13 +63,6 @@ permCrossover :: Eq a => Crossover [a]
 permCrossover size seed [xs,ys] = [cs ++ (ys \\ cs)]
   where
     cs = take i xs
-    i = mod seed size
-
-permCrossover2 :: Eq a => Crossover [a]
-permCrossover2 size seed [xs,ys] = [csA ++ (ys \\ csA),csB ++ (xs \\ csB)]
-  where
-    csA = take i xs
-    csB = take i ys
     i = mod seed size
 
 --
@@ -123,10 +115,9 @@ stopFit f evalPop = null evalPop || fst (head evalPop) == f
 --
 
 initPop :: Size -> MkRand c -> Seed -> Pop c
-initPop popSize mkRandChrom seed = map mkRandChrom seeds
+initPop popSize mkRandChrom seed = take popSize $ map mkRandChrom seeds
   where
-    rnds = randomRs (0 , maxBound :: Seed) (mkStdGen seed)
-    seeds = take popSize rnds
+    seeds = randomRs (0 , maxBound :: Seed) (mkStdGen seed)
 
 evalPop :: Ord c => Fitness c -> Pop c -> Pop (Eval c)
 evalPop fitFunc pop = mySort $ zip (map fitFunc pop) pop
