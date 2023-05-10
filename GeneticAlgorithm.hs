@@ -42,8 +42,12 @@ rselection seed evalPop = map (evalPop !!) indices
 tournementSelection :: Ord c => Selection c
 tournementSelection seed evalPop = map (fitterChrom evalPop) (segment 2 indicies)
   where
-    indicies = take (length evalPop * 2) $ randomRs (0, length evalPop - 1) (mkStdGen seed)
-    fitterChrom evaledPop [i,j] = min (evaledPop !! i) (evaledPop !! j)
+    indicies = randomRs (0, length evalPop - 1) (mkStdGen seed)
+    fitterChrom evaledPop [i,j] 
+      | fst c1 < fst c2 = c1
+      | otherwise = c2
+        where [c1,c2] = [evaledPop !! i, evalPop !! j]
+
 
 eliteSelection :: Selection c
 eliteSelection seed evalPop = evalPop
