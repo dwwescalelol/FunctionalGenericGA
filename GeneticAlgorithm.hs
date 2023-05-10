@@ -97,6 +97,13 @@ orderedMerge (x:xs) (y:ys)
 distinctOrderedMerge :: Ord c => Merge c
 distinctOrderedMerge xs ys = orderedMerge (distinct xs) (distinct ys)
 
+distinct :: Eq c => Pop (Eval c) -> Pop (Eval c)
+distinct [] = []
+distinct [x] = [x]
+distinct (x:y:xs)
+  | x == y = distinct (x:xs)
+  | otherwise = x : distinct (y:xs)
+
 --
 -- Stop
 --
@@ -118,7 +125,7 @@ initPop popSize mkRandChrom seed = map mkRandChrom seeds
     seeds = take popSize rnds
 
 evalPop :: Ord c => Fitness c -> Pop c -> Pop (Eval c)
-evalPop fitFunc pop = distinct $ mySort $ zip (map fitFunc pop) pop
+evalPop fitFunc pop = mySort $ zip (map fitFunc pop) pop
 
 sortPop :: Pop (Eval c) -> Pop (Eval c)
 sortPop = sortBy (\(fitnessA, _) (fitnessB, _) -> compare fitnessA fitnessB)
@@ -132,13 +139,6 @@ mySort = sortBy myCompare
       | f1 == f2 && c1 < c2 = LT
       | f1 == f2 && c1 > c2 = GT
       | otherwise = EQ
-
-distinct :: Eq c => Pop (Eval c) -> Pop (Eval c)
-distinct [] = []
-distinct [x] = [x]
-distinct (x:y:xs)
-  | x == y = distinct (x:xs)
-  | otherwise = x : distinct (y:xs)
 
 evolve :: Ord c => PopSize -> ChromSize -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Seed -> Pop (Eval c) -> Pop (Eval c)

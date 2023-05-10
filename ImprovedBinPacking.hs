@@ -16,9 +16,7 @@ orderBins bins = map snd (sortBy binOrder (zip (map sum bins) (map sort bins)))
       | otherwise = EQ
 
 fitness :: Fitness Bins
-fitness bins = maximum binWeights - minimum binWeights
-  where
-    binWeights = map sum bins
+fitness bins = sum (head bins) - sum (last bins)
 
 binMutate :: Mutation Bins
 binMutate _ s [bins] = [orderBins (binA : tail (init bins) ++ [binB])]

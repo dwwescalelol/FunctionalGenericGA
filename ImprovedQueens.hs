@@ -1,9 +1,9 @@
 import GeneticAlgorithm
-import GAforQueens hiding(gaForQueens, main)
+import GAforQueens hiding(gaForQueens,main)
 import GAUtility
 import Data.List
 
-type Coord = (Int,Int)
+type Coord = (Row,Column)
 type QueenPair = (Coord, Coord)
 
 queenMutation :: Mutation Board
@@ -33,20 +33,19 @@ gaForQueens nQueens maxGenerations popSize (xProb,mProb)
 
 main :: IO ()
 main = do
-  let n = 350
+  let n = 500
   let seed = 123456
-  let maxGen = 1000
-  let popSize = 50
+  let maxGen = 10000
+  let popSize = 100
   let xProb = 0.0
-  let mProb = 0.7
+  let mProb = 0.8
   putStrLn " --  All Generations --"
   let solutions = gaForQueens n maxGen  popSize (xProb, mProb) seed
-  let window = 15
+  let window = 5
   let myprint (x, ys, n) = do
-                        putStrLn ("Generation " ++ show x)
+                        putStrLn ("Generation " ++ show x ++ ", Size " ++ show n)
                         mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   ")) ys
-                        print n
   mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
   putStrLn " --  Last Generation --"
   print (length solutions)
-  mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) $ last solutions
+  putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs) $ head $ last solutions
