@@ -135,6 +135,10 @@ mySort = sortBy myCompare
       | f1 == f2 && c1 > c2 = GT
       | otherwise = EQ
 
+--
+-- GA
+--
+
 evolve :: Ord c => PopSize -> ChromSize -> Fitness c -> Selection c ->
   (Crossover c, Int, Int, Prob) -> (Mutation c, Int, Int, Prob) -> Merge c -> Seed -> Pop (Eval c) -> Pop (Eval c)
 evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, crossoverProb) 
