@@ -1,4 +1,4 @@
-module GeneticAlgorithm where 
+module GAFramework where 
 import System.Random (randomR, mkStdGen, Random (randomRs))
 import Data.List ( (\\), sortBy )
 import GAUtility ( indexOf, segment, swapItemAt )

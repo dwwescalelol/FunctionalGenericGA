@@ -1,4 +1,4 @@
-import GeneticAlgorithm
+import GAFramework
 import GAforTSP hiding(gaForTSP, main)
 import Data.List
 import System.Random

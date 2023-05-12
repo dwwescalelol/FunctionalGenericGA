@@ -1,4 +1,4 @@
-import GeneticAlgorithm
+import GAFramework
 import GAforBinPacking hiding(gaForBP,binMutate,fitness,main)
 import Data.List
 

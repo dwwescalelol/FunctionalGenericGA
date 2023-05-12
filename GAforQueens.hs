@@ -1,5 +1,5 @@
 module GAforQueens where 
-import GeneticAlgorithm
+import GAFramework
 import GAUtility
 import Data.List
 
@@ -24,7 +24,7 @@ takes (r1,c1) (r2,c2) = abs (r1-r2) == abs (c1-c2)
 gaForQueens :: NQueen -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Board)]
 gaForQueens nQueens maxGenerations popSize (xProb,mProb)
   = geneticAlgorithm maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
-  (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge (stopFit 0)
+  (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) distinctOrderedMerge (stopFit 0)
 
 main :: IO ()
 main = do
@@ -32,7 +32,7 @@ main = do
   let seed = 123456
   let maxGen = 50
   let popSize = 500
-  let xProb = 0.6
-  let mProb = 0.2
+  let xProb = 0.7
+  let mProb = 0.15
   let solutions = gaForQueens n maxGen popSize (xProb, mProb) seed
-  display solutions 12
+  display solutions 5

@@ -1,5 +1,5 @@
 module GAforBinPacking where
-import GeneticAlgorithm
+import GAFramework
 import GAUtility
 import System.Random
 

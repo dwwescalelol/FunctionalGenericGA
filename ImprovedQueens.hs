@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-import GeneticAlgorithm
+import GAFramework
 import GAforQueens hiding(gaForQueens,main)
 import GAUtility
 import Data.List
