@@ -127,8 +127,13 @@ gaForQueens nQueens maxGenerations popSize (xProb,mProb)
 ```
 
 ## Displaying
-To display the outputs to the console, a quick main monad can be defined. 
+To display the outputs to the console, a generic type has been defined such that either a user can implement their own display or use one of the pre defined displays. Display takes a population of evaluated chromsomes and a window, then returns a monad to display the contents to the console.
+```haskell
+type DisplayPop c = Show c => [Pop (Eval c)] -> Int -> IO ()
+```
+There is a pre defined function called display that returns windows of each generation, displaying first the fitness and then the chromosome. Each generation has its generation number and population size displayed.
 
+In our example, we can call the generic display function within our main function. Here is where we define the mutation/crossover probabilities, the population size, max generations, seed and any other problem specific values needed for the GA
 ```haskell
 main :: IO ()
 main = do
@@ -136,17 +141,35 @@ main = do
   let seed = 123456
   let maxGen = 50
   let popSize = 500
-  let xProb = 0.6
-  let mProb = 0.2
-  putStrLn " --  All Generations --"
+  let xProb = 0.7
+  let mProb = 0.15
   let solutions = gaForQueens n maxGen popSize (xProb, mProb) seed
-  let window = 12
-  let myprint (x, ys, z) = do
-                        putStrLn ("Generation " ++ show x ++ ", Size " ++ show z)
-                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
-  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
-  putStrLn " --  Last Generation --"  
-  print (length solutions)
-
+  display solutions 5
+```
+When called it gives the results:
+```ghci
+ghci> main  
+ --  All Generations --
+Generation 0, Size 500
+4   [3,17,14,6,13,20,10,7,2,16,11,4,1,19,5,8,18,12,15,9]
+4   [19,5,1,4,20,15,9,3,8,12,18,2,17,10,16,7,6,11,13,14]   
+6   [1,3,15,6,7,14,4,13,12,16,5,19,11,10,8,18,2,17,20,9]   
+6   [9,2,6,13,20,15,1,14,4,12,18,3,7,19,11,8,16,5,10,17]   
+6   [9,6,14,20,19,5,8,10,4,11,3,16,2,12,15,7,17,1,13,18]
+Generation 1, Size 500
+4   [3,17,14,6,13,20,10,7,2,16,11,4,1,19,5,8,18,12,15,9]   
+4   [4,15,3,10,13,5,12,7,14,2,20,8,11,16,1,17,19,9,6,18]   
+4   [19,5,1,4,20,15,9,3,8,12,18,2,17,10,16,7,6,11,13,14]   
+6   [6,12,11,13,8,17,3,10,18,16,4,20,7,9,14,15,5,2,19,1]   
+6   [9,1,15,10,18,14,5,11,6,2,4,13,20,16,19,12,8,17,7,3] 
+...
+...
+Generation 37, Size 500
+0   [5,12,15,1,20,6,9,13,17,3,18,7,14,10,2,19,16,4,11,8]   
+1   [5,12,15,1,20,6,9,13,17,3,18,7,14,10,2,19,11,16,4,8]   
+1   [5,12,15,18,20,6,9,13,17,1,3,7,14,10,2,19,16,11,4,8]   
+1   [5,12,15,18,20,6,9,13,17,1,3,7,14,10,2,19,16,11,4,8]   
+1   [5,15,12,3,20,6,9,13,17,1,18,7,19,10,16,14,11,2,4,8]   
+ Last Generation, 37
 ```
 
