@@ -5,7 +5,7 @@ The project comes with demonstartions of how to deploy the framework in the form
 + Traveling Salesman Problem
 + Balanced Bin Packing 
 
-The project comes with 3 improved exampels of GAs, showing the steps of how to improve a GA solution to the same problems listed above.
+The project comes with 3 improved exampels of GAs, showing the steps of how to improve a GA solution to the same problems listed above. For each example there is also a transpiler file that generates latex code for each case study solution type.
 
 This framework is unorthadox in its approach to GAs in how the populations evolve, the population is split into three. The population to merge, to crossover and to persist into the next generation. In each evolution only crossover or mutation can be applied to a chromosome, not both as seen in more orthadox frameworks.
 A new operator merge is defined which controlls the behavior in how the 3 populations are merged together in each evolution.
