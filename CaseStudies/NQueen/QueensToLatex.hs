@@ -14,23 +14,14 @@ afterBoard n =
   "\\" ++ "end{figure}\n"
 
 chessLabels :: Board -> String
-chessLabels b =  foldr1 join (map (\(f,r) -> ('q':f : (show r))) (zip ['a' .. 'z'] b))
-
-join :: String -> String -> String
-join s t = s++ "," ++ t
-
-resize :: Board  -> String
-resize b =   "\\" ++ "resizebox{" ++ show r ++ "\\" ++ "textwidth}{!}{"
+chessLabels b = foldr1 join (map (\(f,r) -> ('q':f : (show r))) (zip ['a' .. 'z'] b))
   where
-      n = length b
-      r | n < 20 = 1.0 :: Double
-        | otherwise =  1- (fromIntegral (n-20) * 0.04) 
-
+    join s t = s++ "," ++ t
 
 showBoard :: Board -> String
 showBoard b = 
-  "\\" ++ "storechessboardstyle{" ++ (show n)++ "x"++ (show n)++ "}{\n"++
-  "       maxfield=y" ++show (n)++ ",\n" ++
+  "\\" ++ "storechessboardstyle{" ++ show n ++ "x"++ show n ++ "}{\n"++
+  "       maxfield=y" ++show n ++ ",\n" ++
   "       borderwidth=1mm, \n"  ++ 
   "       % color=white,\n"  ++
   "       %colorwhitebackfields,\n" ++
@@ -49,7 +40,7 @@ showBoard b =
   "       hlabelwidth=18pt, \n" ++
   "       vlabellift=10pt}  \n" ++
   "       \\" ++ "chessboard[   \n" ++
-  "       style=" ++ (show n)++ "x"++ (show n)++ ", \n" ++
+  "       style=" ++ show n ++ "x"++ show n ++ ", \n" ++
   "       setpieces={" ++ chessLabels b ++ "\n" ++
   "       },  \n" ++
   "       padding=1ex, \n" ++
@@ -57,9 +48,15 @@ showBoard b =
   "} \n"
           where n = length b
 
+resize :: Board  -> String
+resize b =   "\\" ++ "resizebox{" ++ show r ++ "\\" ++ "textwidth}{!}{"
+  where
+      n = length b
+      r | n < 20 = 1.0 :: Double
+        | otherwise =  1- (fromIntegral (n-20) * 0.04) 
+
 displayBoard :: Board -> String
 displayBoard b = beforeBoard ++ resize b ++ showBoard b ++ afterBoard (length b)
-
 
 latexQueens :: Board -> IO ()
 latexQueens b = writeFile ("LatexFigures" ++ "\\" ++ "drawQueens" ++ show (length b) ++ ".tex") (displayBoard fb)
