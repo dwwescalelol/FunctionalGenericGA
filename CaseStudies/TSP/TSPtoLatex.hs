@@ -24,7 +24,7 @@ plotEdge :: (Show a1, Show a2, Show a3, Show a4) => ((a5, a1, a2), (a6, a3, a4))
 plotEdge ((n1, x1, y1), (n2, x2, y2)) = 
     "     \\" ++ "draw[dashed] (" ++show x1 ++ ","++ show y1 ++")--("++show x2 ++ "," ++ show y2++ "); \n" 
 
-drawPath :: Route -> [Char]
+drawPath :: Route -> String
 drawPath cs = beforeNodes ++ concatMap plotEdge ps ++ 
  "      %Points \n" ++ 
   "      \\" ++ "foreach " ++ "\\" ++ "Point/\\" ++ "PointLabel in \n      {" ++ 
@@ -53,6 +53,5 @@ afterNodes =
    "PointLabel$}; \n \n" ++
        "\\" ++ "end{tikzpicture} \n"
 
-main :: IO ()
-main = do
-  putStrLn (drawPath [("U",38,41),("T",34,51),("X",42,75),("M",25,63),("K",10,71),("R",7,59),("Z",23,43),("I",29,28),("C",22,20),("G",11,24),("J",5,10),("A",36,4),("Y",57,12),("E",76,14),("N",88,3),("V",80,20),("W",91,31),("H",86,35),("L",78,45),("P",90,51),("O",89,73),("D",66,63),("S",54,50),("Q",53,40),("B",63,30),("F",47,25)])
+latexTSP :: Route -> IO ()
+latexTSP r = writeFile ("LatexFigures" ++ "\\" ++ "drawRoute" ++ show (length r) ++ ".tex") (drawPath r)

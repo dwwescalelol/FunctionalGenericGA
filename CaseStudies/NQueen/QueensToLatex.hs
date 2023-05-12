@@ -3,10 +3,13 @@ type Board = [Int]
 -- LaTeX instructions for visualising the  chessboard in a LaTeX document.
 -- The chess drawing package must be included in the master file.
  
+-- anything above 20 put \resizebox{0.8\textwidth}{!}{...}
+
+
 beforeBoard :: String
 beforeBoard = 
   "\\" ++  "begin{figure}\n" ++
-  "\\" ++ " centering\n" ++
+  "\\" ++ "centering\n" ++
   "\\" ++ "noindent \n" 
 
 afterBoard :: Int -> String
@@ -16,8 +19,7 @@ afterBoard n =
 
 
 -- Board is [Int] indicating column positions for Q_i occupying Row_i, i <- [1..n].
-chessLabels :: Board -> [String]
-chessLabels b =  map (\(f,r) -> ('q':f : (show r))) (zip ['a' .. 't'] b)
+chessLabels b = init $ concatMap (\(f,r) -> ('q':f : show(r) ++ ",")) (zip ['a' .. 'z'] b)
 
 -- n is number of queens
 showBoard :: Board -> String
@@ -41,20 +43,19 @@ showBoard b =
   "       showmover=false,  \n" ++
   "       hlabelwidth=18pt, \n" ++
   "       vlabellift=10pt}  \n" ++
-  "       \\" ++ "chessboard[   \n" ++
+  "\\" ++ "chessboard[\n" ++
   "       style=" ++ show n ++ "x"++ show n ++ ", \n" ++
-  "       setpieces={ \n" ++
-  "       " ++ filter (\x -> x/='[' || x/= ']') (show (chessLabels b)) ++ "\n" ++
+  "       setpieces={\n" ++
+  "       " ++ "[" ++ chessLabels b ++ "]\n" ++
   "       },  \n" ++
-  "       padding=1ex, \n" ++
-  "       ] \n" 
+  "       padding=1ex,\n]\n" 
           where n = length b
 
 displayBoard :: Board -> String
 displayBoard b = beforeBoard ++ showBoard b ++ afterBoard (length b)
 
-drawQueens :: Board -> IO ()
-drawQueens b = writeFile ("LatexFiles" ++ "\\" ++ "drawQueens" ++ show (length b) ++ ".tex") (displayBoard b)
+latexQueens :: Board -> IO ()
+latexQueens b = writeFile ("LatexFigures" ++ "\\" ++ "drawQueens" ++ show (length b) ++ ".tex") (displayBoard b)
 
 qSolution25 :: Board
 qSolution25 =  [16,5,12,9,18,22,24,6,20,10,23,4,14,11,17,3,21,0,7,1,15,2,19,13,8]

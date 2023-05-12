@@ -83,6 +83,5 @@ drawBins bs = beforeBins ++
 dr1 :: String
 dr1 = drawBins [[36,29,34],[46,50],[11,44,42],[24,40,16,18],[35,37,27],[30,11,37,19],[35,22,39],[35,31,32],[46,29,22],[46,42]]
 
-main :: IO ()
-main = do
-  putStrLn dr1
+latexBins :: Bins -> IO ()
+latexBins b = writeFile ("LatexFigures" ++ "\\" ++ "drawBins" ++ show (length b) ++ "B" ++ show (length $ concat b) ++ "W" ++ ".tex") (drawBins b)
