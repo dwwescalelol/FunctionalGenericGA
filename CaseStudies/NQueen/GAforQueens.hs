@@ -1,4 +1,4 @@
-module GAforQueens where 
+module CaseStudies.NQueen.GAforQueens where
 import GAFramework
 import GAUtility
 import Data.List

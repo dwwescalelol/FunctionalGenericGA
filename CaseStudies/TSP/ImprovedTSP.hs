@@ -1,5 +1,5 @@
 import GAFramework
-import GAforTSP hiding(gaForTSP, main)
+import CaseStudies.TSP.GAforTSP hiding(gaForTSP, main)
 import Data.List
 import System.Random
 

@@ -1,4 +1,4 @@
-module GAforBinPacking where
+module CaseStudies.BalancedBinPacking.GAforBinPacking where
 import GAFramework
 import GAUtility
 import System.Random

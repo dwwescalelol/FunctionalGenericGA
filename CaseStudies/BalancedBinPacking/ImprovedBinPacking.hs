@@ -1,5 +1,5 @@
 import GAFramework
-import GAforBinPacking hiding(gaForBP,binMutate,fitness,main)
+import CaseStudies.BalancedBinPacking.GAforBinPacking hiding(gaForBP,binMutate,fitness,main)
 import Data.List
 
 mkRandOrderedBins :: NumBins -> [Weight] -> MkRand Bins

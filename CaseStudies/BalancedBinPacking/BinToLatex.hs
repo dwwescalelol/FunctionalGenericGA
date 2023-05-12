@@ -1,11 +1,6 @@
-import System.Random (Random(randomRs), Random(randomR), mkStdGen)
+import CaseStudies.BalancedBinPacking.GAforBinPacking ( Bins, Bin, Weight)
 import Data.List
 import Text.Printf
-
-type NumBins = Int
-type Weight  = Int
-type Bin = [Weight]
-type Bins = [Bin]
 
 beforeBins :: String
 beforeBins = 
@@ -14,9 +9,9 @@ beforeBins =
     "%       \\" ++ "draw[step=0.1,help lines,black!20] (1,1) grid (99,79); \n" ++
     "      % axis \n" ++
     "%      \\" ++ "draw[thick,->] (0,0) -- (100,0); \n" ++
-    "%       \\" ++ "draw[thick,->] (0,0) -- (0,80); \n \n"  :: String
+    "%       \\" ++ "draw[thick,->] (0,0) -- (0,80); \n \n"
 
-drawLabels :: [Int] -> [(Double, Double)] -> String
+drawLabels :: Bin -> [(Double, Double)] -> String
 drawLabels bs cs = beforeLabels ++
   "      %Points \n" ++ 
   "      \\" ++ "foreach " ++ "\\" ++ "Point/\\" ++ "PointLabel in \n      {" ++ 
@@ -31,8 +26,8 @@ drawLabels bs cs = beforeLabels ++
 afterBins :: String
 afterBins = "\\" ++ "end{tikzpicture} \n"
 
-fillcolour :: (Show a, Num a) => a -> String
-fillcolour w = "red!" ++ show(20 +w) ++ "!white"
+fillcolour :: Weight -> String
+fillcolour w = "red!" ++ show(20 + w) ++ "!white"
 
 drawColour :: String
 drawColour = "black"
@@ -48,7 +43,7 @@ dim :: Int -> (Double, Double)
 dim w = (h*1.25, h) 
   where h = sqrt (fromIntegral w/1.56)
 
-drawOneBin :: (Double, Double) -> (Double, Double) -> [Int] -> String
+drawOneBin :: (Double, Double) -> (Double, Double) -> Bin -> String
 drawOneBin (xscale, yscale) (cx, cy) bs = concatMap drawWeight rectangles ++ drawLabels bs (map (\(x,y) -> (x-2,y)) centres)
   where
     sbs = reverse (sort bs)
@@ -57,10 +52,10 @@ drawOneBin (xscale, yscale) (cx, cy) bs = concatMap drawWeight rectangles ++ dra
     rectangles = zipWith ($) (zipWith recCoordinates bs centres) sizes  
     recCoordinates label (cx,cy) (len, wid) = (label, (cx-len/2, cy), (cx+len/2, cy+wid))
 
-drawBin :: (Double, Double) -> [Int] ->  String
+drawBin :: (Double, Double) -> Bin ->  String
 drawBin (cx, cy) bs = beforeBins ++ drawOneBin (1,1) (cx, cy) bs ++ afterBins
 
-drawBins ::[[Int]]-> String 
+drawBins :: Bins -> String 
 drawBins bs = beforeBins ++
   concat (zipWith (drawOneBin (1.4*xscale, 1.2*yscale)) centres sbs) ++ 
   drawTotalWeights (map sum bs) (zip xCentres (replicate nB  (-6.0))) ++
@@ -70,18 +65,18 @@ drawBins bs = beforeBins ++
     sbs = map (reverse.sort) bs
     nB = length bs
     heaviest = maximum s
-    yscale = 1.0 :: Double -- 78.0 / fromIntegral heaviest :: Double
+    yscale = 1.0 -- 78.0 / fromIntegral heaviest
     sep = 2
     half = sep `div` 2
     binWidth = 98.0/fromIntegral nB
-    xscale = binWidth / fst (dim heaviest) :: Double
+    xscale = binWidth / fst (dim heaviest)
     halfWidth = binWidth /2
     xCentres = scanl (+) halfWidth (replicate (nB -1) binWidth)
     centres = zip xCentres [0,0..]
     drawTotalWeights bs centres = drawLabels bs (map (\(x,y) -> (x-2,y)) centres)
 
-dr1 :: String
-dr1 = drawBins [[36,29,34],[46,50],[11,44,42],[24,40,16,18],[35,37,27],[30,11,37,19],[35,22,39],[35,31,32],[46,29,22],[46,42]]
+bins1 :: Bins
+bins1 = [[36,29,34],[46,50],[11,44,42],[24,40,16,18],[35,37,27],[30,11,37,19],[35,22,39],[35,31,32],[46,29,22],[46,42]]
 
 latexBins :: Bins -> IO ()
 latexBins b = writeFile ("LatexFigures" ++ "\\" ++ "drawBins" ++ show (length b) ++ "B" ++ show (length $ concat b) ++ "W" ++ ".tex") (drawBins b)

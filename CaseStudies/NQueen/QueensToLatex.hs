@@ -1,10 +1,7 @@
-type Board = [Int]
--- This script takes a chessboard configuration and creates a sequence of 
--- LaTeX instructions for visualising the  chessboard in a LaTeX document.
--- The chess drawing package must be included in the master file.
- 
--- anything above 20 put \resizebox{0.8\textwidth}{!}{...}
+import CaseStudies.NQueen.GAforQueens ( Board, NQueen )
 
+-- The chess drawing package must be included in the master file.
+-- anything above 20 put \resizebox{0.8\textwidth}{!}{...}
 
 beforeBoard :: String
 beforeBoard = 
@@ -12,16 +9,14 @@ beforeBoard =
   "\\" ++ "centering\n" ++
   "\\" ++ "noindent \n" 
 
-afterBoard :: Int -> String
+afterBoard :: NQueen -> String
 afterBoard n =
   "\\" ++ "caption{\\" ++ "label{fig:Queens" ++ show n ++"} Solution for " ++ show n ++ "queens} \n" ++
   "\\" ++ "end{figure}\n"
 
-
--- Board is [Int] indicating column positions for Q_i occupying Row_i, i <- [1..n].
+chessLabels :: Board -> [Char]
 chessLabels b = init $ concatMap (\(f,r) -> ('q':f : show(r) ++ ",")) (zip ['a' .. 'z'] b)
 
--- n is number of queens
 showBoard :: Board -> String
 showBoard b = 
   "\\" ++ "storechessboardstyle{" ++ show n ++ "x"++ show n ++ "}{\n"++

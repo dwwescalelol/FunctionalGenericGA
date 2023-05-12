@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 import GAFramework
-import GAforQueens hiding(gaForQueens,main)
+import CaseStudies.NQueen.GAforQueens hiding(gaForQueens,main)
 import GAUtility
 import Data.List
 
@@ -46,7 +46,7 @@ customDisplay solutions window = do
 
 main :: IO ()
 main = do
-  let n = 1000
+  let n = 25
   let seed = 123456
   let maxGen = 10000
   let popSize = 100

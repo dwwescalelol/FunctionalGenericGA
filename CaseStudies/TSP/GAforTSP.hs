@@ -1,4 +1,4 @@
-module GAforTSP where
+module CaseStudies.TSP.GAforTSP where
 import GAFramework
 import GAUtility
 import System.Random

@@ -1,6 +1,4 @@
-type City = (String,Int,Int)
-type Route = [City]
-type Distance = Double
+import CaseStudies.TSP.GAforTSP ( Route, City )
 
 cities1 :: Route
 cities1 = [("A",86,72),("B",63,46),("C",17,21),("D",66,4),("E",76,47)]
