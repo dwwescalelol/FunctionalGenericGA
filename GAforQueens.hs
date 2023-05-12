@@ -34,12 +34,5 @@ main = do
   let popSize = 500
   let xProb = 0.6
   let mProb = 0.2
-  putStrLn " --  All Generations --"
   let solutions = gaForQueens n maxGen popSize (xProb, mProb) seed
-  let window = 12
-  let myprint (x, ys, z) = do
-                        putStrLn ("Generation " ++ show x ++ ", Size " ++ show z)
-                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
-  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
-  putStrLn " --  Last Generation --"  
-  print (length solutions)
+  display solutions 12

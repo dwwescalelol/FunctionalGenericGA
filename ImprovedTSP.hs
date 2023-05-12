@@ -68,14 +68,7 @@ main = do
   let popSize = 1000
   let xProb = 0.6
   let mProb = 0.2
-  putStrLn " --  All Generations --"
   let solutions = smartGaForTSP cities26 maxGen popSize (xProb, mProb) seed
-  let window = 2
-  let myprint (x, ys, n) = do
-                        putStrLn ("Generation " ++ show x ++ ", Size " ++ show n)
-                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
-  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
-  putStrLn " --  Last Generation --"
-  print (length solutions)
+  display solutions 2
   print (foldl min (1000, []) (map head solutions))
 

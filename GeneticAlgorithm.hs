@@ -174,3 +174,17 @@ geneticAlgorithm maxGenerations popSize chromSize mkRandChrom fitness selection 
        seeds = randomRs (0, maxBound) (mkStdGen seed)
        initialPop = evalPop fitness (initPop popSize mkRandChrom (seeds !! (maxGenerations + 1)))
        evolvedPop = loop (map (evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren, xProb) (mutation, mNumParents, mNumChildren, mProb) merge) (take maxGenerations seeds)) stop initialPop
+
+--
+-- Display
+--
+type DisplayPop c = Show c => [Pop (Eval c)] -> Int -> IO ()
+
+display :: DisplayPop c
+display solutions window = do
+  putStrLn " --  All Generations --"
+  let myprint (x, ys, z) = do
+                        putStrLn ("Generation " ++ show x ++ ", Size " ++ show z)
+                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
+  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
+  putStrLn (" Last Generation, " ++ show (length solutions - 1))

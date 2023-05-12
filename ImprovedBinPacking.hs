@@ -65,13 +65,5 @@ main = do
   let popSize = 500
   let xProb = 0.0
   let mProb = 0.9
-  putStrLn " --  All Generations --"
   let solutions = gaForBP weights numBins maxGen popSize (xProb, mProb) seed
-  let window = 3
-  let myprint (x, ys, n) = do
-                        putStrLn ("Generation " ++ show x)
-                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
-                        print n
-  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
-  putStrLn " --  Last Generation --"  
-  print (length solutions)
+  display solutions 3
