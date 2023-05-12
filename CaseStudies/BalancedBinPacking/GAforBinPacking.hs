@@ -77,9 +77,12 @@ gaForBP weights numBins maxGenerations popSize (xProb,mProb)
       average = div totalSum numBins
       minWaste = numBins - (totalSum - (average * numBins)) 
 
+weights30 :: [Weight]
+weights30 = [35,30,46,29,40,11,16,19,11,42,46,39,32,22,42,29,18,46,37,31,37,50,27,22,34,24,44,35,35,36]
+
 main :: IO ()
 main = do
-  let weights = mkRandWeights 30 (2,50) 486237
+  let weights = weights30
   let numBins = 10
   let seed = 123456
   let maxGen = 50
