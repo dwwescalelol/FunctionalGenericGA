@@ -46,11 +46,12 @@ customDisplay solutions window = do
 
 main :: IO ()
 main = do
-  let n = 25
+  let n = 1000
   let seed = 123456
-  let maxGen = 10000
+  let maxGen = 1000
   let popSize = 100
   let xProb = 0.0
   let mProb = 0.8
   let solutions = gaForQueens n maxGen  popSize (xProb, mProb) seed
-  customDisplay solutions 3
+  writeToFile solutions 1
+

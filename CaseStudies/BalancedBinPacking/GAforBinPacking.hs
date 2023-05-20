@@ -77,17 +77,24 @@ gaForBP weights numBins maxGenerations popSize (xProb,mProb)
       average = div totalSum numBins
       minWaste = numBins - (totalSum - (average * numBins)) 
 
-weights30 :: [Weight]
-weights30 = [35,30,46,29,40,11,16,19,11,42,46,39,32,22,42,29,18,46,37,31,37,50,27,22,34,24,44,35,35,36]
+weights12,weights20,weights30,weights50,weights100 :: [Weight]
+weights12 = [41,39,20,29,46,6,27,17,38,30,40,41]
+weights20 = [41,39,20,29,46,6,27,17,38,30,40,41,40,43,26,33,29,36,21,49]
+weights30 = [41,39,20,29,46,6,27,17,38,30,40,41,40,43,26,33,29,36,21,49,27,33,34,5,32,29,10,11,27,49]
+weights50 = [41,39,20,29,46,6,27,17,38,30,40,41,40,43,26,33,29,36,21,49,27,33,34,5,32,29,10,11,27,49,36,13,48,29,24,34,24,49,45,5,48,20,5,33,34,37,28,7,21,47]
+weights100 = [41,39,20,29,46,6,27,17,38,30,40,41,40,43,26,33,29,36,21,49,27,33,34,5,32,29,10,11,27,49,36,13,48,29,24,34,24,49,45,5,48,20,5,33,34,37,28,7,21,47,21,10,32,20,14,6,33,34,38,27,15,17,33,17,31,46,43,22,16,15,18,45,10,47,38,31,30,36,11,30,40,41,25,42,48,10,13,14,44,28,49,14,11,24,19,24,48,19,31,40]
 
 main :: IO ()
 main = do
-  let weights = weights30
-  let numBins = 10
+  let weights = weights100
+  let numBins = 15
   let seed = 123456
   let maxGen = 50
   let popSize = 500
-  let xProb = 0.6
-  let mProb = 0.2
+  let xProb = 0.4
+  let mProb = 0.4
   let solutions = gaForBP weights numBins maxGen popSize (xProb,mProb) seed
-  display solutions 10
+  writeToFile solutions 1
+  let best = foldl min (1000000000, []) (map head solutions)
+  print $ fst best
+  print $ snd best

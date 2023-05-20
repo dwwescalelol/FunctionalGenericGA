@@ -1,7 +1,11 @@
 import CaseStudies.NQueen.GAforQueens ( Board, NQueen )
+import Data.Char
+
 
 -- The chess drawing package must be included in the master file.
 -- anything above 20 put \resizebox{0.8\textwidth}{!}{...}
+numToChar :: Int -> String
+numToChar n = [chr (ord 'a' + n - 1)]
 
 beforeBoard :: String
 beforeBoard = 
@@ -21,7 +25,7 @@ chessLabels b = foldr1 join (map (\(f,r) -> ('q':f : (show r))) (zip ['a' .. 'z'
 showBoard :: Board -> String
 showBoard b = 
   "\\" ++ "storechessboardstyle{" ++ show n ++ "x"++ show n ++ "}{\n"++
-  "       maxfield=y" ++show n ++ ",\n" ++
+  "       maxfield=" ++ numToChar n ++ show n ++ ",\n" ++
   "       borderwidth=1mm, \n"  ++ 
   "       % color=white,\n"  ++
   "       %colorwhitebackfields,\n" ++
@@ -35,7 +39,7 @@ showBoard b =
   "       addfontcolors, \n" ++
   "       pgfstyle=border, \n" ++
   "       color=white,  \n" ++
-  "       markregion=a1-y" ++ show n ++ ",  \n" ++
+  "       markregion=a1-" ++ numToChar n ++ show n ++ ",  \n" ++
   "       showmover=false,  \n" ++
   "       hlabelwidth=18pt, \n" ++
   "       vlabellift=10pt}  \n" ++
@@ -46,7 +50,7 @@ showBoard b =
   "       padding=1ex, \n" ++
   "       ] \n" ++
   "} \n"
-          where n = length b
+  where n = length b
 
 resize :: Board  -> String
 resize b =   "\\" ++ "resizebox{" ++ show r ++ "\\" ++ "textwidth}{!}{"
@@ -59,7 +63,7 @@ displayBoard :: Board -> String
 displayBoard b = beforeBoard ++ resize b ++ showBoard b ++ afterBoard (length b)
 
 latexQueens :: Board -> IO ()
-latexQueens b = writeFile ("LatexFigures" ++ "\\" ++ "drawQueens" ++ show (length b) ++ ".tex") (displayBoard fb)
+latexQueens b = writeFile ("LatexFigures" ++ "\\" ++ "drawQueens" ++ show (length b) ++ ".tex") (displayBoard b)
   where fb = map (1+) b
 
 qSolution25, qSolution25a :: [Int]

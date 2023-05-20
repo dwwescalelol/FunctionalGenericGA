@@ -1,4 +1,3 @@
-import Control.Monad
 import Data.List
 import CaseStudies.NQueen.GAforQueens ( Board, Column, Row, NQueen )
 

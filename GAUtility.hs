@@ -19,6 +19,7 @@ shuffle seed xs = shuffle' seeds xs
         q = qs !! index
         remaining = take index qs ++ drop (index + 1) qs
 
+-- should not be called on infinate lists
 segment :: Int -> [a] -> [[a]]
 segment n xs
   | null ys = ys
