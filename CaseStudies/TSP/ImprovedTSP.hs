@@ -2,6 +2,7 @@ import GAFramework
 import CaseStudies.TSP.GAforTSP hiding(gaForTSP, main)
 import Data.List
 import System.Random
+import GAUtility (removeItemAt)
 
 dist :: City -> City -> Distance
 dist x y = distance (x,y)
@@ -31,10 +32,27 @@ mkGreedyRoute rate cities seed = prGreedyRoute (head newcities) (tail newcities)
     i = seed `mod` n
     newcities = drop i cities ++ take i cities 
 
+prGreedyRoute' :: City -> [City] -> [Int] -> Route
+prGreedyRoute' start [c] (s:seeds) =[start, c] 
+prGreedyRoute' start cs (s:seeds) = start:prGreedyRoute' nextCity (cs\\[nextCity]) seeds
+     where  
+      closest = nearestCity start cs
+      nextCity
+        | 1 == s = closest 
+        | otherwise = nearestCity start (cs\\[closest])
+
+mkGreedyRoute' :: [City] -> MkRand Route
+mkGreedyRoute' cities seed = prGreedyRoute' (head newcities) (tail newcities) seeds 
+  where 
+    seeds = randomRs(1,2 :: Int) (mkStdGen seed )     
+    n = length cities
+    i = seed `mod` n
+    newcities = drop i cities ++ take i cities 
+
 smartGaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Route)]
 smartGaForTSP cities maxGenerations popSize (xProb,mProb) 
-  = geneticAlgorithm maxGenerations popSize (length cities) (mkGreedyRoute rate cities) fitness rselection
-    (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) distinctOrderedMerge dontStop
+  = geneticAlgorithm maxGenerations popSize (length cities) (mkGreedyRoute' cities) fitness rselection
+    (permCrossover, 2, 1, xProb) (mutationBySwap, 1, 1, mProb) orderedMerge dontStop
     where
       rate = round ((r-1)/r * 100.0)
       r = numChildren popSize cities
@@ -61,14 +79,17 @@ inverseLog b = binSearchLog (1.0, 2.0) b 100
 numChildren :: Int -> [City] -> Double
 numChildren popSize cities = inverseLog (logOfa popSize (length cities))
 
-main :: IO ()
-main = do
-  let seed = 123456
-  let maxGen = 100
-  let popSize = 1000
-  let xProb = 0.6
-  let mProb = 0.2
-  let solutions = smartGaForTSP cities26 maxGen popSize (xProb, mProb) seed
-  display solutions 2
-  print (foldl min (1000, []) (map head solutions))
+mainn :: [City] -> IO ()
+mainn cs = do
+  let seed = 1234567
+  let maxGen = 50
+  let popSize = 500
+  let xProb = 0.4
+  let mProb = 0.4
+  let solutions = smartGaForTSP cs maxGen popSize (xProb, mProb) seed
+  writeToFile solutions 1
+  let best = foldl min (100000, []) (map head solutions)
+  print (fst (head $ head solutions))
+  print $ fst best
+  print $ snd best
 
