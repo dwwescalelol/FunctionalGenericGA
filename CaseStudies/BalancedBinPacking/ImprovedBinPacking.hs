@@ -16,7 +16,7 @@ orderBins bins = map snd (sortBy binOrder (zip (map sum bins) (map sort bins)))
       | otherwise = EQ
 
 fitness :: Fitness Bins
-fitness bins = sum (head bins) - sum (last bins)
+fitness bins = sum (last bins) - sum (head bins)
 
 binMutate :: Mutation Bins
 binMutate _ s [bins] = [orderBins (binA : tail (init bins) ++ [binB])]
@@ -50,7 +50,7 @@ balancedWasteSwap binA binB
 gaForBP :: [Weight] -> NumBins -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Bins)]
 gaForBP weights numBins maxGenerations popSize (xProb,mProb)
   = geneticAlgorithm maxGenerations popSize numBins (mkRandOrderedBins numBins weights) fitness rselection
-  (binCrossover, 2, 1, xProb) (binMutate, 1, 1, mProb) orderedMerge (stop minWaste)
+  (binCrossover, 2, 1, xProb) (binMutate, 1, 1, mProb) orderedMerge (stopFit 3)
     where
       totalSum = sum weights
       average = div totalSum numBins
@@ -58,12 +58,12 @@ gaForBP weights numBins maxGenerations popSize (xProb,mProb)
 
 main :: IO ()
 main = do
-  let weights = mkRandWeights 1000 (10,50) 34
-  let numBins = 15
+  let weights = mkRandWeights 5000 (5,50) 123456
+  let numBins = 500
   let seed = 123456
-  let maxGen = 1000
-  let popSize = 500
+  let maxGen = 500
+  let popSize = 100
   let xProb = 0.0
-  let mProb = 0.9
+  let mProb = 1
   let solutions = gaForBP weights numBins maxGen popSize (xProb, mProb) seed
-  display solutions 3
+  display solutions 1
