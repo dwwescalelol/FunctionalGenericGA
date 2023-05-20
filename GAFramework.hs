@@ -40,13 +40,16 @@ rselection seed evalPop = map (evalPop !!) indices
     indices = map (indexOf accFitness) randomNumbers
 
 tournementSelection :: Selection c
-tournementSelection seed evalPop = map (fitterChrom evalPop) (segment 2 indicies)
+tournementSelection seed evalPop = map (fitterChrom evalPop) (pairIndices indicies)
   where
     indicies = randomRs (0, length evalPop - 1) (mkStdGen seed)
     fitterChrom evaledPop [i,j] 
       | fst c1 < fst c2 = c1
       | otherwise = c2
-        where [c1,c2] = [evaledPop !! i, evalPop !! j]
+        where [c1,c2] = [evalPop !! i, evalPop !! j]
+    pairIndices [] = []
+    pairIndices [_] = []
+    pairIndices (x:y:zs) = [x, y] : pairIndices zs
 
 eliteSelection :: Selection c
 eliteSelection _ = concat . repeat
@@ -108,7 +111,7 @@ dontStop :: Stop c
 dontStop = const False
 
 stopFit :: Int -> Stop c
-stopFit f evalPop = null evalPop || fst (head evalPop) == f
+stopFit f evalPop = null evalPop || fst (head evalPop) <= f
 
 --
 -- Population
@@ -120,20 +123,10 @@ initPop popSize mkRandChrom seed = take popSize $ map mkRandChrom seeds
     seeds = randomRs (0 , maxBound :: Seed) (mkStdGen seed)
 
 evalPop :: Ord c => Fitness c -> Pop c -> Pop (Eval c)
-evalPop fitFunc pop = mySort $ zip (map fitFunc pop) pop
+evalPop fitFunc pop = sortPop $ zip (map fitFunc pop) pop
 
 sortPop :: Pop (Eval c) -> Pop (Eval c)
 sortPop = sortBy (\(fitnessA, _) (fitnessB, _) -> compare fitnessA fitnessB)
-
-mySort :: Ord c => Pop (Eval c) -> Pop (Eval c)
-mySort = sortBy myCompare
-  where
-    myCompare (f1,c1) (f2,c2)
-      | f1 < f2 = LT
-      | f1 > f2 = GT
-      | f1 == f2 && c1 < c2 = LT
-      | f1 == f2 && c1 > c2 = GT
-      | otherwise = EQ
 
 --
 -- GA
@@ -153,7 +146,7 @@ evolve popSize chromSize fitness selection (crossover, xNumParents, xNumChildren
     selectedParents = take numParents (selection (seeds !! 0) evaledPop)
     parentsForMutation = take numParentsMutation selectedParents
     parentsForCrossover = take numParentsCrossover $ drop numParentsMutation selectedParents
-    grannies = distinct $ mySort $ drop (numParentsCrossover + numParentsMutation) selectedParents
+    grannies = sortPop $ drop (numParentsCrossover + numParentsMutation) selectedParents
 
     childrenOfCrossover = evalPop fitness $ concatMap (crossover chromSize (seeds !! 1)) (segment xNumParents (map snd parentsForCrossover))
     childrenOfMutation = evalPop fitness $ concatMap (mutation chromSize (seeds !! 2)) (segment mNumParents (map snd parentsForMutation))
@@ -178,7 +171,7 @@ geneticAlgorithm maxGenerations popSize chromSize mkRandChrom fitness selection 
 --
 -- Display
 --
-type DisplayPop c = Show c => [Pop (Eval c)] -> Int -> IO ()
+type DisplayPop c = (Ord c, Show c) => [Pop (Eval c)] -> Int -> IO ()
 
 display :: DisplayPop c
 display solutions window = do
@@ -188,3 +181,19 @@ display solutions window = do
                         mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) ys
   mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
   putStrLn (" Last Generation, " ++ show (length solutions - 1))
+  let best = minimum (map head solutions)
+  print $ fst best
+  print $ snd best
+
+writeToFile :: DisplayPop c
+writeToFile solutions window = do
+  let filename = "Results.txt"
+  writeFile filename ""
+  let myprint (x, ys, z) = do
+                        appendFile filename ("Generation " ++ show x ++ ", Size " ++ show z ++ "\n")
+                        mapM_ (\(f, bs) -> appendFile filename (show f ++ "   " ++ show bs ++ "\n")) ys
+  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
+  appendFile filename (" Last Generation, " ++ show (length solutions - 1) ++ "\n")
+  let best = minimum (map head solutions)
+  print $ fst best
+  print $ snd best
