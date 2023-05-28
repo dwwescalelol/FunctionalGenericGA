@@ -8,8 +8,6 @@ type City = (String,Int,Int)
 type Route = [City]
 type Distance = Double
 
-
-
 -- This function converts a number to the corresponding uppercase letter
 numToLetter :: Int -> Char
 numToLetter n = chr (ord 'A' + n)
@@ -58,7 +56,7 @@ legs route = zip route (tail route ++ [head route])
 tspMutate :: Mutation Route
 tspMutate size seeds [route] = map (head route :) (mutationBySwap size seeds [tail route])
 
-gaForTSP :: Route -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Route)]
+gaForTSP :: [City] -> MaxGenerations -> PopSize -> (Prob,Prob) -> Seed -> [Pop (Eval Route)]
 gaForTSP cities maxGenerations popSize (xProb,mProb) = geneticAlgorithm maxGenerations popSize (length cities - 1) (mkRandRoute cities) fitness rselection
   (permCrossover, 2, 1, xProb) (tspMutate, 1, 1, mProb) orderedMerge dontStop
 
@@ -66,12 +64,9 @@ main :: IO ()
 main = do
   let cities = cities20
   let seed = 123456
-  let maxGen = 5000
+  let maxGen = 50
   let popSize = 500
   let xProb = 0.4
   let mProb = 0.4
   let solutions = gaForTSP cities maxGen popSize (xProb,mProb) seed
-  writeToFile solutions 1
-  let best = foldl min (1000000000, []) (map head solutions)
-  print $ fst best
-  print $ snd best
+  writeToFile solutions 5

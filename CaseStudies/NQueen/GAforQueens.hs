@@ -30,14 +30,9 @@ mainn :: Int -> IO ()
 mainn n = do
   -- let n = 20
   let seed = 123456
-  let maxGen = 500
-  let popSize = 5000
+  let maxGen = 50
+  let popSize = 500
   let xProb = 0.4
   let mProb = 0.4
   let solutions = gaForQueens n maxGen popSize (xProb, mProb) seed
   writeToFile solutions 1
-  let best = foldl min (1000000000, []) (map head solutions)
-  print $ fst best
-  print $ snd best
-  print $ fst $ head $ head solutions
-  print $ length solutions

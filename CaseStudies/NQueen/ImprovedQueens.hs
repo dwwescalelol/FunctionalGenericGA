@@ -9,10 +9,13 @@ type QueenPair = (Coord, Coord)
 
 queenMutation :: Mutation Board
 queenMutation _ _ [xs]
-  | length collisions < 2 = []
+  | null xs = [xs]
+  | length collisions == 1 = [swapItemAt singlePair xs]
   | otherwise = mutateBoard xs (head collisions) (collisions!!1)
   where
     collisions = take 2 $ collidingPairs xs
+    collision = head collisions
+    singlePair = (fst (fst collision) - 1 ,fst (snd collision) -1)
 
 mutateBoard :: Board -> QueenPair -> QueenPair -> [Board]
 mutateBoard b ((c1,_),(c2,_)) ((c3,_),(c4,_)) =
@@ -32,26 +35,14 @@ gaForQueens nQueens maxGenerations popSize (xProb,mProb)
   = geneticAlgorithm maxGenerations popSize nQueens (randQueen nQueens) qfitness rselection
   (permCrossover, 2, 1, xProb) (queenMutation, 1, 4, mProb) orderedMerge (stopFit 0)
 
-customDisplay :: DisplayPop Board
-customDisplay solutions window = do
-  putStrLn " --  All Generations --"
-  let myprint (x, ys, n) = do
-                        putStrLn ("Generation " ++ show x)
-                        mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   ")) ys
-                        print n
-  mapM_ myprint (zip3 [0..] (map (take window) solutions) (map length solutions))
-  putStrLn (" --  Last Generation -- " ++ show (length solutions - 1))
-  mapM_ (putStrLn . (\ (f, bs) -> show f ++ "   " ++ show bs)) $ filter (\(f,bs) -> f==0)(last solutions)
-
-
 main :: IO ()
 main = do
-  let n = 1000
-  let seed = 123456
+  let n = 25
+  let seed = 12345678
   let maxGen = 1000
-  let popSize = 100
-  let xProb = 0.0
-  let mProb = 0.8
-  let solutions = gaForQueens n maxGen  popSize (xProb, mProb) seed
-  writeToFile solutions 1
+  let popSize = 500
+  let xProb = 0.2
+  let mProb = 0.7
+  let solutions = gaForQueens n maxGen popSize (xProb, mProb) seed
+  writeToFile solutions 5
 

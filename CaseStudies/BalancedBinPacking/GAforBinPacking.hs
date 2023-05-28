@@ -86,15 +86,12 @@ weights100 = [41,39,20,29,46,6,27,17,38,30,40,41,40,43,26,33,29,36,21,49,27,33,3
 
 main :: IO ()
 main = do
-  let weights = weights100
-  let numBins = 15
+  let weights = weights20
+  let numBins = 6
   let seed = 123456
   let maxGen = 50
   let popSize = 500
   let xProb = 0.4
   let mProb = 0.4
   let solutions = gaForBP weights numBins maxGen popSize (xProb,mProb) seed
-  writeToFile solutions 1
-  let best = foldl min (1000000000, []) (map head solutions)
-  print $ fst best
-  print $ snd best
+  writeToFile solutions 4

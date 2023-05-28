@@ -197,3 +197,4 @@ writeToFile solutions window = do
   let best = minimum (map head solutions)
   print $ fst best
   print $ snd best
+  print ("Last Generation: " ++ show (length solutions - 1))
